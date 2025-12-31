@@ -1,0 +1,273 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global overrides */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overscroll-behavior: none;
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
+}
+
+#root {
+  height: 100%;
+}
+
+/* Prevent iOS bounce/overscroll */
+body {
+  position: fixed;
+  width: 100%;
+  overscroll-behavior-y: contain;
+}
+
+/* Mobile viewport handling */
+.mobile-container {
+  height: 100dvh; /* Dynamic viewport height for mobile browsers */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Mobile chat input handling */
+.mobile-chat-input {
+  position: sticky;
+  bottom: 0;
+  padding-bottom: env(safe-area-inset-bottom); /* Handle iPhone notch */
+}
+
+/* Prevent zoom on input focus (iOS) */
+input,
+textarea,
+select {
+  font-size: 16px; /* iOS won't zoom if >= 16px */
+}
+
+/* Ensure chat messages area is scrollable */
+.mobile-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+/* Desktop background */
+.desktop-background {
+  background-color: var(--background-color, #008080);
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Taskbar */
+.taskbar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background-color: #c0c0c0;
+  border-top: 2px solid #ffffff;
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  gap: 4px;
+  z-index: 9999;
+}
+
+/* Desktop icons */
+.desktop-icon {
+  width: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  cursor: pointer;
+  user-select: none;
+  border: 2px solid transparent;
+}
+
+.desktop-icon:active {
+  border: 2px dotted #000;
+}
+
+.desktop-icon-text {
+  color: #fff;
+  font-size: 12px;
+  text-align: center;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  word-wrap: break-word;
+  max-width: 100%;
+}
+
+/* Terminal aesthetic for chat */
+.terminal {
+  background-color: #0C0C0C;
+  color: #00FF00;
+  font-family: 'IBM Plex Mono', 'Consolas', monospace;
+  padding: 12px;
+  overflow-y: auto;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.terminal-text {
+  color: #00FF00;
+  text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+}
+
+.terminal-username {
+  color: var(--chat-name-color, #00FF00);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.terminal-username:hover {
+  filter: brightness(1.2);
+  text-shadow: 0 0 8px currentColor;
+}
+
+/* Window chrome override for 98.css */
+.window {
+  position: absolute;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(to right, #000080, #1084d0);
+  padding: 2px 4px;
+  cursor: move;
+  user-select: none;
+}
+
+.title-bar-text {
+  color: white;
+  font-weight: bold;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.title-bar-controls {
+  display: flex;
+  gap: 2px;
+}
+
+.title-bar-controls button {
+  width: 16px;
+  height: 14px;
+  padding: 0;
+  font-size: 8px;
+  min-width: unset;
+}
+
+/* Loading screen */
+.loading-screen {
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
+  font-size: 16px;
+}
+
+/* Scrollbar styling for terminal */
+.terminal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.terminal::-webkit-scrollbar-track {
+  background: #000;
+}
+
+.terminal::-webkit-scrollbar-thumb {
+  background: #00FF00;
+  border-radius: 4px;
+}
+
+.terminal::-webkit-scrollbar-thumb:hover {
+  background: #00FF88;
+}
+
+/* Prevent text selection on double-click for desktop icons */
+.desktop-icon,
+.desktop-icon * {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Window content area */
+.window-body {
+  padding: 12px;
+  overflow: auto;
+  height: calc(100% - 30px); /* Account for title bar */
+}
+
+/* Error text styling */
+.error-text {
+  color: #ff0000;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Success text styling */
+.success-text {
+  color: #008000;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Field group styling */
+.field-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 8px;
+}
+
+.field-row-stacked {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+  gap: 4px;
+}
+
+/* Notification animations */
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Responsive utilities */
+@media (max-width: 1023px) {
+  .desktop-only {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mobile-only {
+    display: none !important;
+  }
+}
