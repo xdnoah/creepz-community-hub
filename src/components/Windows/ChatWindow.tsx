@@ -6,6 +6,7 @@ import { useChat } from '../../hooks/useChat';
 import { useAuth } from '../../contexts/AuthContext';
 import { useWindowManager } from '../../contexts/WindowContext';
 import { useTypingIndicator } from '../../hooks/useTypingIndicator';
+import { useLizard } from '../../hooks/useLizard';
 import type { WindowState } from '../../types';
 
 interface ChatWindowProps {
@@ -17,6 +18,7 @@ export function ChatWindow({ window }: ChatWindowProps) {
   const { user } = useAuth();
   const { openWindow } = useWindowManager();
   const { typingUsers, setTyping } = useTypingIndicator('global-chat');
+  const { addMessageGold } = useLizard();
 
   const handleSend = async (content: string) => {
     if (!user) return;
@@ -25,6 +27,8 @@ export function ChatWindow({ window }: ChatWindowProps) {
     if (result.error) {
       throw new Error(result.error);
     }
+    // Reward user with gold for sending message
+    await addMessageGold();
   };
 
   const handleUsernameClick = (userId: string, username: string) => {

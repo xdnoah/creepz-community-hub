@@ -1,4 +1,4 @@
-export type WindowType = 'auth' | 'chat' | 'myProfile' | 'profile' | 'sales' | 'twitter' | 'onlineUsers' | 'dmList' | 'dm' | 'settings' | 'raid';
+export type WindowType = 'auth' | 'chat' | 'myProfile' | 'profile' | 'sales' | 'twitter' | 'onlineUsers' | 'dmList' | 'dm' | 'settings' | 'raid' | 'lizardgoshi';
 
 export interface WindowConfig {
   width: number;
@@ -121,6 +121,65 @@ export interface Notification {
   timestamp: number;
 }
 
+export interface Lizard {
+  id: string;
+  name: string;
+  gender: 'male' | 'female';
+  level: number;
+  hp: number;
+  def: number;
+  atk: number;
+  crit_rate: number;
+  crit_damage: number;
+  gold: number;
+  passive_income: number;
+  total_gold_earned: number;
+  last_gold_update: string;
+  fed_at: string | null;
+  is_fed: boolean;
+  last_login: string;
+  login_streak: number;
+  login_streak_claimed: boolean;
+  messages_sent: number;
+  total_levels_gained: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RaidedTweet {
+  id: string;
+  user_id: string;
+  raid_link_id: string;
+  raided_at: string;
+  created_at: string;
+}
+
+export interface RaidLinkWithRaided {
+  id: string;
+  user_id: string;
+  username: string;
+  tweet_url: string;
+  description: string | null;
+  created_at: string;
+  is_raided?: boolean; // Client-side flag
+}
+
+export interface StatIncrease {
+  stat: 'hp' | 'def' | 'atk' | 'crit_rate' | 'crit_damage';
+  amount: number;
+  displayName: string;
+}
+
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  requirement: (lizard: Lizard) => boolean;
+  reward: number;
+  unlocked: boolean;
+}
+
 export const WINDOW_DEFAULTS: Record<WindowType, WindowConfig> = {
   auth: { width: 380, height: 340, x: 470, y: 220, minWidth: 320, minHeight: 300 },
   chat: { width: 500, height: 400, x: 50, y: 50, minWidth: 400, minHeight: 300 },
@@ -133,6 +192,7 @@ export const WINDOW_DEFAULTS: Record<WindowType, WindowConfig> = {
   dm: { width: 480, height: 420, x: 300, y: 120, minWidth: 400, minHeight: 350 },
   settings: { width: 520, height: 580, x: 250, y: 80, minWidth: 480, minHeight: 500 },
   raid: { width: 450, height: 500, x: 420, y: 70, minWidth: 400, minHeight: 450 },
+  lizardgoshi: { width: 550, height: 600, x: 350, y: 50, minWidth: 500, minHeight: 550 },
 };
 
 export const MOBILE_BREAKPOINT = 1024;

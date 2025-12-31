@@ -44,6 +44,8 @@ export function WindowProvider({ children }: { children: ReactNode }) {
         return 'Settings';
       case 'raid':
         return '🚀 RAID PARTY';
+      case 'lizardgoshi':
+        return '🦎 LizardGoshi';
       default:
         return 'Window';
     }
