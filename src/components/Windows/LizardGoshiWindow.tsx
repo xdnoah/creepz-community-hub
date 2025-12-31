@@ -10,6 +10,12 @@ interface LizardGoshiWindowProps {
   window: WindowState;
 }
 
+interface StatChangePopup {
+  stat: StatIncrease;
+  oldValue: number;
+  newValue: number;
+}
+
 export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
   const {
     lizard,
@@ -28,8 +34,9 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
   const [setupName, setSetupName] = useState('');
   const [setupGender, setSetupGender] = useState<'male' | 'female'>('male');
   const [setupError, setSetupError] = useState('');
-  const [levelUpAnimation, setLevelUpAnimation] = useState<StatIncrease | null>(null);
+  const [statChangePopup, setStatChangePopup] = useState<StatChangePopup | null>(null);
   const [goldAnimation, setGoldAnimation] = useState<number | null>(null);
+  const [showLevelUpEffect, setShowLevelUpEffect] = useState(false);
 
   useEffect(() => {
     if (!loading && !lizard && !error) {
@@ -53,13 +60,36 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
   };
 
   const handleLevelUp = async () => {
+    if (!lizard) return;
+
+    const oldStats = {
+      hp: lizard.hp,
+      def: lizard.def,
+      atk: lizard.atk,
+      crit_rate: lizard.crit_rate,
+      crit_damage: lizard.crit_damage,
+    };
+
     const result = await levelUp();
+
     if (result.error) {
       alert(result.error);
     } else if (result.statIncrease) {
-      // Show level up animation
-      setLevelUpAnimation(result.statIncrease);
-      setTimeout(() => setLevelUpAnimation(null), 3000);
+      // Show level up effect
+      setShowLevelUpEffect(true);
+      setTimeout(() => setShowLevelUpEffect(false), 1500);
+
+      // Calculate new value and show popup
+      const oldValue = oldStats[result.statIncrease.stat];
+      const newValue = oldValue + result.statIncrease.amount;
+
+      setStatChangePopup({
+        stat: result.statIncrease,
+        oldValue,
+        newValue,
+      });
+
+      setTimeout(() => setStatChangePopup(null), 4000);
     }
   };
 
@@ -94,6 +124,14 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
     return value.toFixed(0);
   };
 
+  const getLizardStage = (level: number): string => {
+    if (level < 10) return 'Baby';
+    if (level < 25) return 'Young';
+    if (level < 50) return 'Adult';
+    if (level < 100) return 'Elder';
+    return 'Ancient';
+  };
+
   if (loading) {
     return (
       <Window window={window}>
@@ -117,7 +155,7 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
   if (showSetup) {
     return (
       <Window window={window}>
-        <div className="flex flex-col h-full bg-white">
+        <div className="flex flex-col h-full bg-gradient-to-br from-green-50 to-teal-50">
           <div className="bg-gradient-to-r from-green-600 to-teal-600 text-white p-4 border-b-2 border-gray-400">
             <div className="text-2xl font-bold mb-1">🦎 Welcome to LizardGoshi!</div>
             <div className="text-sm">Create your lizard companion</div>
@@ -126,7 +164,7 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
           <div className="flex-1 flex items-center justify-center p-6">
             <form onSubmit={handleSetupSubmit} className="w-full max-w-md">
               <div className="text-center mb-6">
-                <div className="text-6xl mb-4">🦎</div>
+                <div className="text-6xl mb-4 animate-bounce">🦎</div>
                 <div className="text-xl font-bold mb-2">Name Your Lizard</div>
                 <div className="text-sm text-gray-600">
                   Your lizard will earn passive gold and grow stronger over time!
@@ -193,198 +231,218 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
   const levelUpCost = calculateLevelUpCost(lizard.level);
   const canLevelUp = lizard.gold >= levelUpCost;
   const nextDailyReward = lizard.login_streak < 7 ? calculateDailyReward(lizard.login_streak + 1) : calculateDailyReward(7);
+  const lizardStage = getLizardStage(lizard.level);
+  const lizardPower = lizard.hp + lizard.def * 10 + lizard.atk * 20;
 
   return (
     <Window window={window}>
-      <div className="flex flex-col h-full bg-white">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-green-600 to-teal-600 text-white p-3 border-b-2 border-gray-400">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="font-bold text-lg">
-                🦎 {lizard.name} {lizard.gender === 'male' ? '♂️' : '♀️'}
+      <div className="flex flex-col h-full bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 relative overflow-hidden">
+        {/* Level up effect overlay */}
+        {showLevelUpEffect && (
+          <div className="absolute inset-0 bg-yellow-400 animate-ping opacity-20 z-50 pointer-events-none" />
+        )}
+
+        {/* Stat Change Popup */}
+        {statChangePopup && (
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none">
+            <div className="bg-gradient-to-r from-yellow-400 to-orange-400 border-4 border-yellow-600 p-4 rounded-lg shadow-2xl animate-bounce">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-white mb-2">⭐ LEVEL UP! ⭐</div>
+                <div className="text-xl font-bold text-yellow-900 mb-1">
+                  {statChangePopup.stat.displayName}
+                </div>
+                <div className="flex items-center justify-center gap-2 text-lg font-bold">
+                  <span className="text-red-700">{formatStat(statChangePopup.stat.stat, statChangePopup.oldValue)}</span>
+                  <span className="text-green-700 text-2xl">→</span>
+                  <span className="text-green-700">{formatStat(statChangePopup.stat.stat, statChangePopup.newValue)}</span>
+                </div>
+                <div className="text-sm text-green-800 mt-1">
+                  +{formatStat(statChangePopup.stat.stat, statChangePopup.stat.amount)}
+                </div>
               </div>
-              <div className="text-xs opacity-90">Level {lizard.level} Lizard</div>
+            </div>
+          </div>
+        )}
+
+        {/* Header - Compact */}
+        <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white p-2 border-b-2 border-gray-400 shadow-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="text-3xl">{lizard.gender === 'male' ? '♂️' : '♀️'}</div>
+              <div>
+                <div className="font-bold text-lg leading-tight">{lizard.name}</div>
+                <div className="text-xs opacity-90">Lv.{lizard.level} {lizardStage} • ⚡{lizardPower.toLocaleString()} Power</div>
+              </div>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold">{Math.floor(lizard.gold).toLocaleString()}</div>
+              <div className="text-2xl font-bold leading-tight">{Math.floor(lizard.gold).toLocaleString()}</div>
               <div className="text-xs opacity-90">💰 Gold</div>
             </div>
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 overflow-y-auto p-4">
-          {/* Gold Income Display */}
-          <div className="bg-yellow-100 border-2 border-yellow-600 p-3 mb-4 relative">
-            <div className="text-center">
-              <div className="text-sm font-bold text-yellow-800 mb-1">
-                Passive Income
-              </div>
-              <div className="text-2xl font-bold text-yellow-900">
-                +{goldPerSecond.toFixed(1)} 💰/s
-              </div>
-              {lizard.is_fed && feedCooldownRemaining > 0 && (
-                <div className="text-xs text-green-700 font-bold mt-1">
-                  🔥 2X BOOST ACTIVE! {formatTime(feedCooldownRemaining)}
+        {/* Main Content - 2 Column Layout */}
+        <div className="flex-1 overflow-y-auto p-3">
+          <div className="grid grid-cols-2 gap-3">
+            {/* LEFT COLUMN */}
+            <div className="space-y-3">
+              {/* Lizard Display */}
+              <div className="border-2 border-emerald-400 bg-gradient-to-br from-emerald-100 to-teal-100 p-3 rounded shadow-lg relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-yellow-400 text-yellow-900 px-2 py-1 text-xs font-bold rounded-bl">
+                  {lizardStage}
                 </div>
-              )}
-            </div>
-            {goldAnimation && (
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-3xl font-bold text-green-600 animate-bounce">
-                +{goldAnimation} 💰
-              </div>
-            )}
-          </div>
-
-          {/* Lizard Sprite */}
-          <div className="text-center mb-4 relative">
-            <div className="text-9xl mb-2 inline-block relative">
-              🦎
-              {levelUpAnimation && (
-                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-sm font-bold text-green-600 bg-green-100 border-2 border-green-600 px-3 py-1 rounded animate-bounce">
-                  +{levelUpAnimation.amount} {levelUpAnimation.displayName}!
+                <div className="text-center">
+                  <div className="text-7xl mb-1 transform hover:scale-110 transition-transform cursor-pointer">
+                    🦎
+                  </div>
+                  <div className="text-xs font-bold text-emerald-800">
+                    +{goldPerSecond.toFixed(1)} 💰/sec
+                    {lizard.is_fed && feedCooldownRemaining > 0 && (
+                      <div className="text-orange-600 mt-1">🔥 2X BOOST!</div>
+                    )}
+                  </div>
                 </div>
-              )}
-            </div>
-            <div className="text-xs text-gray-600">
-              {lizard.level < 10 && 'Baby Lizard'}
-              {lizard.level >= 10 && lizard.level < 25 && 'Young Lizard'}
-              {lizard.level >= 25 && lizard.level < 50 && 'Adult Lizard'}
-              {lizard.level >= 50 && lizard.level < 100 && 'Elder Lizard'}
-              {lizard.level >= 100 && 'Ancient Lizard'}
-            </div>
-          </div>
+                {goldAnimation && (
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-3xl font-bold text-yellow-600 animate-ping">
+                    +{goldAnimation}💰
+                  </div>
+                )}
+              </div>
 
-          {/* Stats Panel */}
-          <div className="border-2 border-gray-400 p-3 mb-4 bg-gray-50">
-            <div className="font-bold text-sm mb-2 text-center border-b-2 border-gray-400 pb-1">
-              📊 STATS
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div className="flex justify-between">
-                <span className="font-bold text-red-600">❤️ HP:</span>
-                <span>{lizard.hp}</span>
+              {/* Stats Panel */}
+              <div className="border-2 border-gray-400 bg-white p-2 rounded shadow">
+                <div className="text-xs font-bold mb-2 text-center border-b border-gray-300 pb-1">
+                  📊 COMBAT STATS
+                </div>
+                <div className="space-y-1 text-xs">
+                  <div className="flex justify-between items-center bg-red-50 px-2 py-1 rounded">
+                    <span className="font-bold text-red-600">❤️ HP</span>
+                    <span className="font-bold">{lizard.hp}</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-blue-50 px-2 py-1 rounded">
+                    <span className="font-bold text-blue-600">🛡️ DEF</span>
+                    <span className="font-bold">{lizard.def}</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-orange-50 px-2 py-1 rounded">
+                    <span className="font-bold text-orange-600">⚔️ ATK</span>
+                    <span className="font-bold">{lizard.atk}</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-purple-50 px-2 py-1 rounded">
+                    <span className="font-bold text-purple-600">💥 CRIT</span>
+                    <span className="font-bold">{formatStat('rate', lizard.crit_rate)}</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-purple-50 px-2 py-1 rounded">
+                    <span className="font-bold text-purple-600">💢 C.DMG</span>
+                    <span className="font-bold">{formatStat('damage', lizard.crit_damage)}</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="font-bold text-blue-600">🛡️ DEF:</span>
-                <span>{lizard.def}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-bold text-orange-600">⚔️ ATK:</span>
-                <span>{lizard.atk}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-bold text-purple-600">💥 CRIT:</span>
-                <span>{formatStat('rate', lizard.crit_rate)}</span>
-              </div>
-              <div className="flex justify-between col-span-2">
-                <span className="font-bold text-purple-600">💢 CRIT DMG:</span>
-                <span>{formatStat('damage', lizard.crit_damage)}</span>
-              </div>
-            </div>
-          </div>
 
-          {/* Level Up Section */}
-          <div className="border-2 border-gray-400 p-3 mb-4 bg-gray-50">
-            <div className="font-bold text-sm mb-2">⬆️ Level Up</div>
-            <div className="mb-2">
-              <div className="text-xs text-gray-600 mb-1">
-                Cost: {levelUpCost.toLocaleString()} 💰
-              </div>
-              <div className="w-full bg-gray-300 h-4 border border-gray-600">
-                <div
-                  className="h-full bg-green-600 transition-all"
-                  style={{ width: `${Math.min((lizard.gold / levelUpCost) * 100, 100)}%` }}
-                />
+              {/* Progress Stats */}
+              <div className="border-2 border-gray-400 bg-gradient-to-br from-purple-50 to-pink-50 p-2 rounded shadow">
+                <div className="text-xs font-bold mb-2 text-center border-b border-gray-300 pb-1">
+                  📈 PROGRESS
+                </div>
+                <div className="grid grid-cols-2 gap-1 text-xs">
+                  <div className="text-center bg-white p-1 rounded">
+                    <div className="text-gray-600">Total Gold</div>
+                    <div className="font-bold text-yellow-700">{lizard.total_gold_earned.toLocaleString()}</div>
+                  </div>
+                  <div className="text-center bg-white p-1 rounded">
+                    <div className="text-gray-600">Messages</div>
+                    <div className="font-bold text-blue-700">{lizard.messages_sent}</div>
+                  </div>
+                  <div className="text-center bg-white p-1 rounded">
+                    <div className="text-gray-600">Levels</div>
+                    <div className="font-bold text-green-700">{lizard.total_levels_gained}</div>
+                  </div>
+                  <div className="text-center bg-white p-1 rounded">
+                    <div className="text-gray-600">Streak</div>
+                    <div className="font-bold text-purple-700">{lizard.login_streak}/7</div>
+                  </div>
+                </div>
               </div>
             </div>
-            <Button95
-              onClick={handleLevelUp}
-              disabled={!canLevelUp}
-              className="w-full font-bold"
-            >
-              {canLevelUp ? '⬆️ LEVEL UP!' : '🔒 Need More Gold'}
-            </Button95>
-            <div className="text-xs text-gray-600 mt-1 text-center">
-              Random stat will increase!
-            </div>
-          </div>
 
-          {/* Feed Button */}
-          <div className="border-2 border-gray-400 p-3 mb-4 bg-gray-50">
-            <div className="font-bold text-sm mb-2">🍖 Feed Lizard</div>
-            <Button95
-              onClick={handleFeed}
-              disabled={feedCooldownRemaining > 0}
-              className="w-full font-bold"
-            >
-              {feedCooldownRemaining > 0
-                ? `⏳ ${formatTime(feedCooldownRemaining)}`
-                : '🍖 FEED (2X Income for 12h)'}
-            </Button95>
-            <div className="text-xs text-gray-600 mt-1 text-center">
-              Doubles passive income for 12 hours!
-            </div>
-          </div>
-
-          {/* Daily Login Streak */}
-          <div className="border-2 border-gray-400 p-3 mb-4 bg-gradient-to-r from-purple-100 to-pink-100">
-            <div className="font-bold text-sm mb-2">📅 Daily Login Streak</div>
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-sm">
-                <span className="font-bold">Day {lizard.login_streak}</span> Streak
-              </div>
-              <div className="text-sm font-bold text-green-600">
-                Next: +{nextDailyReward} 💰
-              </div>
-            </div>
-            <div className="flex gap-1 mb-2">
-              {[1, 2, 3, 4, 5, 6, 7].map((day) => (
-                <div
-                  key={day}
-                  className={`flex-1 h-8 border-2 flex items-center justify-center text-xs font-bold ${
-                    day <= lizard.login_streak
-                      ? 'bg-green-500 border-green-700 text-white'
-                      : 'bg-gray-200 border-gray-400 text-gray-600'
-                  }`}
+            {/* RIGHT COLUMN */}
+            <div className="space-y-3">
+              {/* Level Up Card */}
+              <div className={`border-2 ${canLevelUp ? 'border-yellow-400 bg-gradient-to-br from-yellow-50 to-orange-50' : 'border-gray-400 bg-gray-50'} p-2 rounded shadow`}>
+                <div className="text-xs font-bold mb-2 flex items-center justify-between">
+                  <span>⬆️ LEVEL UP</span>
+                  <span className="text-yellow-700">{levelUpCost.toLocaleString()} 💰</span>
+                </div>
+                <div className="mb-2">
+                  <div className="w-full bg-gray-300 h-3 border border-gray-600 rounded overflow-hidden">
+                    <div
+                      className={`h-full transition-all ${canLevelUp ? 'bg-gradient-to-r from-green-500 to-emerald-500' : 'bg-gradient-to-r from-yellow-400 to-orange-400'}`}
+                      style={{ width: `${Math.min((lizard.gold / levelUpCost) * 100, 100)}%` }}
+                    />
+                  </div>
+                  <div className="text-xs text-center mt-1 text-gray-600">
+                    {Math.floor(lizard.gold)} / {levelUpCost}
+                  </div>
+                </div>
+                <Button95
+                  onClick={handleLevelUp}
+                  disabled={!canLevelUp}
+                  className="w-full font-bold text-sm"
                 >
-                  {day}
+                  {canLevelUp ? '⭐ LEVEL UP!' : '🔒 Need Gold'}
+                </Button95>
+                <div className="text-xs text-gray-600 mt-1 text-center">
+                  Random stat boost + 0.1 💰/s
                 </div>
-              ))}
-            </div>
-            <Button95
-              onClick={handleClaimDaily}
-              disabled={!canClaimDailyReward}
-              className="w-full font-bold"
-            >
-              {canClaimDailyReward ? '🎁 CLAIM REWARD' : '✓ Claimed Today'}
-            </Button95>
-            <div className="text-xs text-gray-600 mt-1 text-center">
-              Login daily to maintain streak! (Resets after 36h)
-            </div>
-          </div>
+              </div>
 
-          {/* Stats Summary */}
-          <div className="border-2 border-gray-400 p-3 bg-gray-50">
-            <div className="font-bold text-sm mb-2">📈 Progress</div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div>
-                <span className="text-gray-600">Total Gold Earned:</span>
-                <div className="font-bold">{lizard.total_gold_earned.toLocaleString()} 💰</div>
+              {/* Feed Card */}
+              <div className={`border-2 ${feedCooldownRemaining > 0 ? 'border-gray-400 bg-gray-50' : 'border-orange-400 bg-gradient-to-br from-orange-50 to-red-50'} p-2 rounded shadow`}>
+                <div className="text-xs font-bold mb-2">
+                  🍖 FEED LIZARD
+                </div>
+                <Button95
+                  onClick={handleFeed}
+                  disabled={feedCooldownRemaining > 0}
+                  className="w-full font-bold text-sm"
+                >
+                  {feedCooldownRemaining > 0
+                    ? `⏳ ${formatTime(feedCooldownRemaining)}`
+                    : '🍖 FEED NOW'}
+                </Button95>
+                <div className="text-xs text-gray-600 mt-1 text-center">
+                  2X income for 12 hours
+                </div>
               </div>
-              <div>
-                <span className="text-gray-600">Messages Sent:</span>
-                <div className="font-bold">{lizard.messages_sent} 💬</div>
-              </div>
-              <div>
-                <span className="text-gray-600">Total Levels:</span>
-                <div className="font-bold">{lizard.total_levels_gained} ⬆️</div>
-              </div>
-              <div>
-                <span className="text-gray-600">Lizard Power:</span>
-                <div className="font-bold text-purple-600">
-                  {(lizard.hp + lizard.def * 10 + lizard.atk * 20).toLocaleString()}
+
+              {/* Daily Streak Card */}
+              <div className="border-2 border-pink-400 bg-gradient-to-br from-pink-50 to-purple-50 p-2 rounded shadow">
+                <div className="text-xs font-bold mb-2 flex items-center justify-between">
+                  <span>📅 DAILY STREAK</span>
+                  <span className="text-green-700">+{nextDailyReward} 💰</span>
+                </div>
+                <div className="flex gap-1 mb-2">
+                  {[1, 2, 3, 4, 5, 6, 7].map((day) => (
+                    <div
+                      key={day}
+                      className={`flex-1 h-6 border flex items-center justify-center text-xs font-bold rounded ${
+                        day <= lizard.login_streak
+                          ? 'bg-gradient-to-b from-green-400 to-green-600 border-green-700 text-white'
+                          : 'bg-gray-200 border-gray-400 text-gray-600'
+                      }`}
+                    >
+                      {day}
+                    </div>
+                  ))}
+                </div>
+                <Button95
+                  onClick={handleClaimDaily}
+                  disabled={!canClaimDailyReward}
+                  className="w-full font-bold text-sm"
+                >
+                  {canClaimDailyReward ? '🎁 CLAIM!' : '✓ Claimed'}
+                </Button95>
+                <div className="text-xs text-gray-600 mt-1 text-center">
+                  Resets after 36h inactivity
                 </div>
               </div>
             </div>
@@ -392,9 +450,9 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
         </div>
 
         {/* Footer Info */}
-        <div className="border-t-2 border-gray-400 p-2 bg-win95-gray">
-          <div className="text-xs text-gray-700 text-center">
-            💬 Send messages in chat to earn +100 gold each!
+        <div className="border-t-2 border-gray-400 p-1 bg-gradient-to-r from-emerald-100 to-teal-100">
+          <div className="text-xs text-gray-700 text-center font-bold">
+            💬 Chat messages = +100 gold each! | 💤 Gold accumulates offline
           </div>
         </div>
       </div>
