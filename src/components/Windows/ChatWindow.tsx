@@ -27,8 +27,12 @@ export function ChatWindow({ window }: ChatWindowProps) {
     if (result.error) {
       throw new Error(result.error);
     }
-    // Reward user with gold for sending message
-    await addMessageGold();
+    // Reward user with gold for sending message (silently fails if no lizard)
+    try {
+      await addMessageGold();
+    } catch (err) {
+      console.log('Gold reward skipped: User may not have a lizard yet');
+    }
   };
 
   const handleUsernameClick = (userId: string, username: string) => {

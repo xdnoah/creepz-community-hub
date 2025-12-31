@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Window } from './Window';
 import { useActivityLogs } from '../../hooks/useActivityLogs';
+import { useWindowManager } from '../../contexts/WindowContext';
 import { LoadingState } from '../ui/LoadingSkeleton';
 import type { WindowState, ActivityLog } from '../../types';
 
@@ -10,6 +11,7 @@ interface ActivityWindowProps {
 
 export function ActivityWindow({ window }: ActivityWindowProps) {
   const { logs, loading, error } = useActivityLogs();
+  const { openWindow } = useWindowManager();
   const logsEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new logs arrive
@@ -46,29 +48,43 @@ export function ActivityWindow({ window }: ActivityWindowProps) {
     }
   };
 
-  const getActivityMessage = (log: ActivityLog): string => {
+  const handleUsernameClick = (userId: string, username: string) => {
+    openWindow('profile', { userId, username });
+  };
+
+  const ClickableUsername = ({ userId, username }: { userId: string; username: string }) => (
+    <button
+      onClick={() => handleUsernameClick(userId, username)}
+      className="text-yellow-400 hover:text-yellow-300 hover:underline font-bold cursor-pointer"
+    >
+      {username}
+    </button>
+  );
+
+  const getActivityMessage = (log: ActivityLog): JSX.Element => {
     const icon = getActivityIcon(log.activity_type);
+    const username = <ClickableUsername userId={log.user_id} username={log.username} />;
 
     switch (log.activity_type) {
       case 'user_joined':
-        return `${icon} ${log.username} joined the community`;
+        return <>{icon} {username} joined the community</>;
       case 'raid_added':
-        return `${icon} ${log.username} added a new tweet to the raid party`;
+        return <>{icon} {username} added a new tweet to the raid party</>;
       case 'tweet_raided':
-        return `${icon} ${log.username} raided a tweet (+500 gold)`;
+        return <>{icon} {username} raided a tweet (+500 gold)</>;
       case 'lizard_levelup':
         const level = log.metadata?.level || '?';
-        return `${icon} ${log.username}'s lizard reached level ${level}`;
+        return <>{icon} {username}'s lizard reached level {level}</>;
       case 'login_streak_milestone':
         const streak = log.metadata?.streak || '?';
-        return `${icon} ${log.username} reached a ${streak}-day login streak`;
+        return <>{icon} {username} reached a {streak}-day login streak</>;
       case 'lizard_fed':
-        return `${icon} ${log.username} fed their lizard (2X boost active)`;
+        return <>{icon} {username} fed their lizard (2X boost active)</>;
       case 'daily_reward_claimed':
         const reward = log.metadata?.reward || '?';
-        return `${icon} ${log.username} claimed daily reward (+${reward} gold)`;
+        return <>{icon} {username} claimed daily reward (+{reward} gold)</>;
       default:
-        return `${icon} ${log.username} performed an action`;
+        return <>{icon} {username} performed an action</>;
     }
   };
 

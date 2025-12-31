@@ -29,6 +29,12 @@ export interface User {
   age?: number;
   location?: string;
   bio?: string;
+  favorite_singer?: string;
+  favorite_show?: string;
+  favorite_movie?: string;
+  favorite_food?: string;
+  favorite_country?: string;
+  favorite_animal?: string;
   created_at: string;
   updated_at: string;
   background_color?: string;

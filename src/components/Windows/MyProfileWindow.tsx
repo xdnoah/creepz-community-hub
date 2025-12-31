@@ -5,7 +5,7 @@ import { Textarea95 } from '../ui/Textarea95';
 import { Button95 } from '../ui/Button95';
 import { useAuth } from '../../contexts/AuthContext';
 import { useProfile } from '../../hooks/useProfile';
-import { formatDate, debounce, validateUsername, validatePassword } from '../../lib/utils';
+import { formatDate } from '../../lib/utils';
 import type { WindowState } from '../../types';
 
 interface MyProfileWindowProps {
@@ -13,372 +13,348 @@ interface MyProfileWindowProps {
 }
 
 export function MyProfileWindow({ window }: MyProfileWindowProps) {
-  const { user, signOut, checkUsernameAvailable } = useAuth();
-  const { profile, loading, updateProfile, changeUsername, changePassword } = useProfile(user?.id || '');
+  const { user, signOut } = useAuth();
+  const { profile, loading, updateProfile } = useProfile(user?.id || '');
 
-  const [activeTab, setActiveTab] = useState<'profile' | 'account'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'favorites' | 'account'>('profile');
 
+  // Profile fields
   const [age, setAge] = useState<string>('');
   const [location, setLocation] = useState('');
   const [bio, setBio] = useState('');
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
-  const [newUsername, setNewUsername] = useState('');
-  const [usernamePassword, setUsernamePassword] = useState('');
-  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
-  const [usernameError, setUsernameError] = useState('');
-  const [changingUsername, setChangingUsername] = useState(false);
+  // Favorites fields
+  const [favoriteSinger, setFavoriteSinger] = useState('');
+  const [favoriteShow, setFavoriteShow] = useState('');
+  const [favoriteMovie, setFavoriteMovie] = useState('');
+  const [favoriteFood, setFavoriteFood] = useState('');
+  const [favoriteCountry, setFavoriteCountry] = useState('');
+  const [favoriteAnimal, setFavoriteAnimal] = useState('');
 
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmNewPassword, setConfirmNewPassword] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [changingPassword, setChangingPassword] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
 
   useEffect(() => {
     if (profile) {
       setAge(profile.age?.toString() || '');
       setLocation(profile.location || '');
       setBio(profile.bio || '');
+      setFavoriteSinger(profile.favorite_singer || '');
+      setFavoriteShow(profile.favorite_show || '');
+      setFavoriteMovie(profile.favorite_movie || '');
+      setFavoriteFood(profile.favorite_food || '');
+      setFavoriteCountry(profile.favorite_country || '');
+      setFavoriteAnimal(profile.favorite_animal || '');
     }
   }, [profile]);
 
-  // Check username availability
-  useEffect(() => {
-    if (newUsername && newUsername !== profile?.username) {
-      const validation = validateUsername(newUsername);
-      if (!validation.valid) {
-        setUsernameAvailable(null);
-        return;
-      }
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveMessage('');
 
-      const timeout = setTimeout(async () => {
-        const available = await checkUsernameAvailable(newUsername);
-        setUsernameAvailable(available);
-      }, 500);
+    const updates: any = {
+      age: age ? parseInt(age) : null,
+      location: location || null,
+      bio: bio || null,
+      favorite_singer: favoriteSinger || null,
+      favorite_show: favoriteShow || null,
+      favorite_movie: favoriteMovie || null,
+      favorite_food: favoriteFood || null,
+      favorite_country: favoriteCountry || null,
+      favorite_animal: favoriteAnimal || null,
+    };
 
-      return () => clearTimeout(timeout);
-    } else {
-      setUsernameAvailable(null);
-    }
-  }, [newUsername, profile?.username, checkUsernameAvailable]);
-
-  // Auto-save profile fields with debounce
-  useEffect(() => {
-    if (!profile) return;
-
-    const hasChanges =
-      age !== (profile.age?.toString() || '') ||
-      location !== (profile.location || '') ||
-      bio !== (profile.bio || '');
-
-    if (hasChanges) {
-      setSaveStatus('saving');
-      const debouncedSave = debounce(async () => {
-        await updateProfile({
-          age: age ? parseInt(age) : undefined,
-          location: location || undefined,
-          bio: bio || undefined,
-        });
-        setSaveStatus('saved');
-        setTimeout(() => setSaveStatus('idle'), 2000);
-      }, 500);
-
-      debouncedSave();
-    }
-  }, [age, location, bio]);
-
-  const handleChangeUsername = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setUsernameError('');
-
-    const validation = validateUsername(newUsername);
-    if (!validation.valid) {
-      setUsernameError(validation.error || 'Invalid username');
-      return;
-    }
-
-    if (!usernameAvailable) {
-      setUsernameError('Username is not available');
-      return;
-    }
-
-    setChangingUsername(true);
-    const result = await changeUsername(newUsername, usernamePassword);
-    setChangingUsername(false);
+    const result = await updateProfile(updates);
 
     if (result.error) {
-      setUsernameError(result.error);
+      setSaveMessage('Error: ' + result.error);
     } else {
-      setNewUsername('');
-      setUsernamePassword('');
-      setUsernameAvailable(null);
+      setSaveMessage('✓ Profile updated successfully!');
+      setTimeout(() => setSaveMessage(''), 3000);
     }
+
+    setSaving(false);
   };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setPasswordError('');
-
-    const validation = validatePassword(newPassword);
-    if (!validation.valid) {
-      setPasswordError(validation.error || 'Invalid password');
-      return;
-    }
-
-    if (newPassword !== confirmNewPassword) {
-      setPasswordError('Passwords do not match');
-      return;
-    }
-
-    setChangingPassword(true);
-    const result = await changePassword(currentPassword, newPassword);
-    setChangingPassword(false);
-
-    if (result.error) {
-      setPasswordError(result.error);
-    } else {
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmNewPassword('');
-    }
-  };
-
-  if (loading || !profile) {
+  if (loading) {
     return (
       <Window window={window}>
-        <div className="flex items-center justify-center h-full">
-          <div>Loading profile...</div>
+        <div className="flex items-center justify-center h-full bg-white">
+          <div className="text-gray-600">Loading profile...</div>
         </div>
       </Window>
     );
   }
 
+  if (!profile) {
+    return (
+      <Window window={window}>
+        <div className="flex items-center justify-center h-full bg-white">
+          <div className="text-red-600">Profile not found</div>
+        </div>
+      </Window>
+    );
+  }
+
+  const memberSince = formatDate(profile.created_at);
+
   return (
     <Window window={window}>
-      <div className="flex flex-col h-full">
-        {/* Header with username and member info */}
-        <div className="bg-gray-200 p-3 border-b-2 border-gray-400">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-xl font-bold">{profile.username}</div>
-              <div className="text-xs text-gray-600">
-                Member since {formatDate(profile.created_at)}
+      <div className="flex flex-col h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+        {/* Profile Header */}
+        <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 p-4 border-b-2 border-gray-400">
+          <div className="flex items-center gap-4">
+            {/* Avatar */}
+            <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-4xl border-4 border-white shadow-xl">
+              {profile.username[0].toUpperCase()}
+            </div>
+            {/* User Info */}
+            <div className="flex-1">
+              <div className="text-2xl font-bold text-white mb-1">{profile.username}</div>
+              <div className="text-sm text-white opacity-90">Member since {memberSince}</div>
+              <div className="flex gap-2 mt-2">
+                <div className="bg-white bg-opacity-20 px-2 py-1 rounded text-xs text-white">
+                  📅 Joined {memberSince}
+                </div>
+                {profile.location && (
+                  <div className="bg-white bg-opacity-20 px-2 py-1 rounded text-xs text-white">
+                    📍 {profile.location}
+                  </div>
+                )}
               </div>
             </div>
-            {saveStatus !== 'idle' && (
-              <div className={`text-sm font-bold ${saveStatus === 'saving' ? 'text-blue-600' : 'text-green-600'}`}>
-                {saveStatus === 'saving' ? '💾 Saving...' : '✓ Saved'}
-              </div>
-            )}
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b-2 border-gray-400">
+        <div className="flex border-b-2 border-gray-400 bg-white">
           <button
-            className={`px-4 py-2 font-bold ${
-              activeTab === 'profile'
-                ? 'bg-white border-t-2 border-l-2 border-r-2 border-gray-400 -mb-0.5'
-                : 'bg-gray-200'
-            }`}
             onClick={() => setActiveTab('profile')}
+            className={`flex-1 px-4 py-2 font-bold text-sm border-r border-gray-400 ${
+              activeTab === 'profile'
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-100 hover:bg-gray-200'
+            }`}
           >
-            📝 Profile
+            👤 Profile
           </button>
           <button
-            className={`px-4 py-2 font-bold ${
-              activeTab === 'account'
-                ? 'bg-white border-t-2 border-l-2 border-r-2 border-gray-400 -mb-0.5'
-                : 'bg-gray-200'
+            onClick={() => setActiveTab('favorites')}
+            className={`flex-1 px-4 py-2 font-bold text-sm border-r border-gray-400 ${
+              activeTab === 'favorites'
+                ? 'bg-purple-500 text-white'
+                : 'bg-gray-100 hover:bg-gray-200'
             }`}
-            onClick={() => setActiveTab('account')}
           >
-            🔐 Account
+            ⭐ Favorites
+          </button>
+          <button
+            onClick={() => setActiveTab('account')}
+            className={`flex-1 px-4 py-2 font-bold text-sm ${
+              activeTab === 'account'
+                ? 'bg-pink-500 text-white'
+                : 'bg-gray-100 hover:bg-gray-200'
+            }`}
+          >
+            ⚙️ Account
           </button>
         </div>
 
-        {/* Tab Content */}
+        {/* Content */}
         <div className="flex-1 overflow-y-auto p-4">
+          {/* Profile Tab */}
           {activeTab === 'profile' && (
-            <div className="flex flex-col gap-4">
-              <div className="field-row-stacked">
-                <label className="font-bold text-sm">Age:</label>
-                <Input95
-                  type="number"
-                  min="1"
-                  max="150"
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
-                  placeholder="Not specified"
-                />
-              </div>
+            <div className="space-y-4">
+              <div className="bg-white p-4 rounded-lg shadow-md border-2 border-blue-200">
+                <div className="text-lg font-bold mb-3 text-blue-700 flex items-center gap-2">
+                  <span>📝</span> About Me
+                </div>
 
-              <div className="field-row-stacked">
-                <label className="font-bold text-sm">Location:</label>
-                <Input95
-                  type="text"
-                  maxLength={50}
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="Not specified"
-                />
-              </div>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-bold text-gray-700 block mb-1">Age</label>
+                    <Input95
+                      type="number"
+                      value={age}
+                      onChange={(e) => setAge(e.target.value)}
+                      placeholder="How old are you?"
+                      className="w-full"
+                    />
+                  </div>
 
-              <div className="field-row-stacked">
-                <label className="font-bold text-sm">Bio:</label>
-                <Textarea95
-                  maxLength={280}
-                  rows={6}
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  placeholder="Tell us about yourself..."
-                />
-                <div className="text-xs text-gray-600 text-right">{bio.length}/280 characters</div>
-              </div>
+                  <div>
+                    <label className="text-sm font-bold text-gray-700 block mb-1">📍 Location</label>
+                    <Input95
+                      type="text"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="Where are you from?"
+                      className="w-full"
+                    />
+                  </div>
 
-              <div className="text-xs text-gray-600 bg-blue-50 border-2 border-blue-400 p-2">
-                💡 <strong>Tip:</strong> Your profile information is saved automatically as you type!
+                  <div>
+                    <label className="text-sm font-bold text-gray-700 block mb-1">✍️ Bio</label>
+                    <Textarea95
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
+                      placeholder="Tell us about yourself..."
+                      rows={4}
+                      className="w-full resize-none"
+                      maxLength={500}
+                    />
+                    <div className="text-xs text-gray-500 mt-1">{bio.length}/500 characters</div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
+          {/* Favorites Tab */}
+          {activeTab === 'favorites' && (
+            <div className="space-y-4">
+              <div className="bg-white p-4 rounded-lg shadow-md border-2 border-purple-200">
+                <div className="text-lg font-bold mb-3 text-purple-700 flex items-center gap-2">
+                  <span>🎵</span> Entertainment
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-bold text-gray-700 block mb-1">🎤 Favorite Singer/Band</label>
+                    <Input95
+                      type="text"
+                      value={favoriteSinger}
+                      onChange={(e) => setFavoriteSinger(e.target.value)}
+                      placeholder="Who's your favorite artist?"
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-bold text-gray-700 block mb-1">📺 Favorite TV Show</label>
+                    <Input95
+                      type="text"
+                      value={favoriteShow}
+                      onChange={(e) => setFavoriteShow(e.target.value)}
+                      placeholder="What show do you love?"
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-bold text-gray-700 block mb-1">🎬 Favorite Movie</label>
+                    <Input95
+                      type="text"
+                      value={favoriteMovie}
+                      onChange={(e) => setFavoriteMovie(e.target.value)}
+                      placeholder="Best movie ever?"
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-4 rounded-lg shadow-md border-2 border-pink-200">
+                <div className="text-lg font-bold mb-3 text-pink-700 flex items-center gap-2">
+                  <span>🌍</span> Life & Preferences
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-bold text-gray-700 block mb-1">🍕 Favorite Food</label>
+                    <Input95
+                      type="text"
+                      value={favoriteFood}
+                      onChange={(e) => setFavoriteFood(e.target.value)}
+                      placeholder="What's your favorite food?"
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-bold text-gray-700 block mb-1">✈️ Best Country Visited</label>
+                    <Input95
+                      type="text"
+                      value={favoriteCountry}
+                      onChange={(e) => setFavoriteCountry(e.target.value)}
+                      placeholder="Where was your best trip?"
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-bold text-gray-700 block mb-1">🐾 Favorite Animal</label>
+                    <Input95
+                      type="text"
+                      value={favoriteAnimal}
+                      onChange={(e) => setFavoriteAnimal(e.target.value)}
+                      placeholder="What's your favorite animal?"
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Account Tab */}
           {activeTab === 'account' && (
-            <div className="flex flex-col gap-4">
-              {/* Change Username Section */}
-              <div className="bg-gray-100 border-2 border-gray-400 p-3">
-                <h3 className="font-bold mb-3 text-sm border-b border-gray-400 pb-1">
-                  Change Username
-                </h3>
-                <form onSubmit={handleChangeUsername} className="flex flex-col gap-3">
-                  <div className="field-row-stacked">
-                    <label className="text-sm">New Username:</label>
-                    <div className="flex items-center gap-2">
-                      <Input95
-                        type="text"
-                        value={newUsername}
-                        onChange={(e) => setNewUsername(e.target.value)}
-                        placeholder={profile.username}
-                        className="flex-1"
-                      />
-                      {newUsername && newUsername !== profile.username && (
-                        <span className="text-2xl">
-                          {usernameAvailable === true ? '✅' : usernameAvailable === false ? '❌' : '⏳'}
-                        </span>
-                      )}
+            <div className="space-y-4">
+              <div className="bg-white p-4 rounded-lg shadow-md border-2 border-red-200">
+                <div className="text-lg font-bold mb-3 text-red-700 flex items-center gap-2">
+                  <span>🔐</span> Account Settings
+                </div>
+
+                <div className="space-y-3">
+                  <div className="p-3 bg-gray-50 rounded border border-gray-300">
+                    <div className="text-sm font-bold text-gray-700">Username</div>
+                    <div className="text-lg font-bold text-blue-600">{profile.username}</div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      Contact support to change your username
                     </div>
-                    {newUsername && usernameAvailable === false && (
-                      <div className="text-xs text-red-600">Username already taken</div>
-                    )}
                   </div>
 
-                  <div className="field-row-stacked">
-                    <label className="text-sm">Confirm with Password:</label>
-                    <Input95
-                      type="password"
-                      value={usernamePassword}
-                      onChange={(e) => setUsernamePassword(e.target.value)}
-                      placeholder="Enter your current password"
-                    />
+                  <div className="p-3 bg-gray-50 rounded border border-gray-300">
+                    <div className="text-sm font-bold text-gray-700">User ID</div>
+                    <div className="text-xs font-mono text-gray-600">{profile.id}</div>
                   </div>
 
-                  {usernameError && (
-                    <div className="bg-red-100 border-2 border-red-600 p-2 text-sm text-red-700">
-                      ⚠️ {usernameError}
-                    </div>
-                  )}
-
-                  <Button95
-                    type="submit"
-                    disabled={!newUsername || !usernamePassword || !usernameAvailable || changingUsername}
-                  >
-                    {changingUsername ? '⏳ Changing...' : '✏️ Change Username'}
-                  </Button95>
-                </form>
-
-                {/* Username History */}
-                {profile.username_history && profile.username_history.length > 0 && (
-                  <details className="mt-3 text-xs">
-                    <summary className="cursor-pointer text-gray-600 hover:text-black">
-                      📜 Username History ({profile.username_history.length} changes)
-                    </summary>
-                    <div className="mt-2 ml-4 space-y-1 max-h-24 overflow-y-auto">
-                      {profile.username_history.map((history) => (
-                        <div key={history.id} className="text-xs">
-                          <span className="text-gray-500">{formatDate(history.changed_at)}:</span>{' '}
-                          <span className="line-through opacity-60">{history.old_username}</span> →{' '}
-                          <span className="font-bold">{history.new_username}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </details>
-                )}
-              </div>
-
-              {/* Change Password Section */}
-              <div className="bg-gray-100 border-2 border-gray-400 p-3">
-                <h3 className="font-bold mb-3 text-sm border-b border-gray-400 pb-1">
-                  Change Password
-                </h3>
-                <form onSubmit={handleChangePassword} className="flex flex-col gap-3">
-                  <div className="field-row-stacked">
-                    <label className="text-sm">Current Password:</label>
-                    <Input95
-                      type="password"
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      placeholder="Enter current password"
-                    />
+                  <div className="p-3 bg-yellow-50 rounded border border-yellow-300">
+                    <div className="text-sm font-bold text-yellow-800 mb-2">⚠️ Danger Zone</div>
+                    <Button95
+                      onClick={signOut}
+                      className="bg-red-500 text-white hover:bg-red-600 w-full"
+                    >
+                      🚪 Sign Out
+                    </Button95>
                   </div>
-
-                  <div className="field-row-stacked">
-                    <label className="text-sm">New Password:</label>
-                    <Input95
-                      type="password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Minimum 6 characters"
-                    />
-                  </div>
-
-                  <div className="field-row-stacked">
-                    <label className="text-sm">Confirm New Password:</label>
-                    <Input95
-                      type="password"
-                      value={confirmNewPassword}
-                      onChange={(e) => setConfirmNewPassword(e.target.value)}
-                      placeholder="Re-enter new password"
-                    />
-                  </div>
-
-                  {passwordError && (
-                    <div className="bg-red-100 border-2 border-red-600 p-2 text-sm text-red-700">
-                      ⚠️ {passwordError}
-                    </div>
-                  )}
-
-                  <Button95
-                    type="submit"
-                    disabled={!currentPassword || !newPassword || !confirmNewPassword || changingPassword}
-                  >
-                    {changingPassword ? '⏳ Updating...' : '🔒 Update Password'}
-                  </Button95>
-                </form>
-              </div>
-
-              {/* Logout Section */}
-              <div className="bg-red-50 border-2 border-red-400 p-3">
-                <h3 className="font-bold mb-2 text-sm">Logout</h3>
-                <p className="text-xs text-gray-700 mb-3">
-                  Sign out of your account on this device.
-                </p>
-                <Button95 onClick={signOut} className="w-full bg-red-100">
-                  🚪 Logout
-                </Button95>
+                </div>
               </div>
             </div>
           )}
         </div>
+
+        {/* Save Button */}
+        {(activeTab === 'profile' || activeTab === 'favorites') && (
+          <div className="border-t-2 border-gray-400 p-3 bg-white">
+            {saveMessage && (
+              <div className={`text-sm mb-2 p-2 rounded ${
+                saveMessage.includes('Error')
+                  ? 'bg-red-100 text-red-700 border border-red-300'
+                  : 'bg-green-100 text-green-700 border border-green-300'
+              }`}>
+                {saveMessage}
+              </div>
+            )}
+            <Button95
+              onClick={handleSave}
+              disabled={saving}
+              className="w-full font-bold bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+            >
+              {saving ? '💾 Saving...' : '💾 Save Changes'}
+            </Button95>
+          </div>
+        )}
       </div>
     </Window>
   );

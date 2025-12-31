@@ -192,6 +192,7 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="radio"
+                      name="gender"
                       value="male"
                       checked={setupGender === 'male'}
                       onChange={(e) => setSetupGender(e.target.value as 'male' | 'female')}
@@ -201,6 +202,7 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="radio"
+                      name="gender"
                       value="female"
                       checked={setupGender === 'female'}
                       onChange={(e) => setSetupGender(e.target.value as 'male' | 'female')}
