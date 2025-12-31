@@ -95,6 +95,7 @@ export function useLizard() {
         stats[item.stat_type] += item.stat_value;
       });
 
+      console.log('[Equipment] Loaded stats:', stats);
       setEquipmentStats(stats);
     } catch (err: any) {
       console.error('Error fetching equipment stats:', err);
@@ -164,9 +165,14 @@ export function useLizard() {
   };
 
   // Update derived stats like gold per second and feed cooldown
-  const updateDerivedStats = (lizardData: Lizard) => {
+  const updateDerivedStats = useCallback((lizardData: Lizard) => {
     // Calculate current gold per second (base + equipment bonus)
     let gps = lizardData.passive_income + equipmentStats.gold_per_second;
+    console.log('[Equipment] Updating GPS:', {
+      base: lizardData.passive_income,
+      equipment: equipmentStats.gold_per_second,
+      total: gps
+    });
     if (lizardData.is_fed && lizardData.fed_at) {
       const fedTime = new Date(lizardData.fed_at).getTime();
       const now = Date.now();
@@ -193,7 +199,7 @@ export function useLizard() {
     }
 
     setGoldPerSecond(gps);
-  };
+  }, [equipmentStats]);
 
   // Check if user can claim daily streak reward
   const checkDailyStreak = (lizardData: Lizard) => {
@@ -441,7 +447,7 @@ export function useLizard() {
     if (lizard) {
       updateDerivedStats(lizard);
     }
-  }, [equipmentStats]);
+  }, [equipmentStats, lizard, updateDerivedStats]);
 
   // Subscribe to equipment changes
   useEffect(() => {
@@ -482,6 +488,15 @@ export function useLizard() {
     crit_rate: 0,
     crit_damage: 0,
   };
+
+  // Debug logging
+  if (lizard && (equipmentStats.hp > 0 || equipmentStats.atk > 0 || equipmentStats.def > 0)) {
+    console.log('[Equipment] Total stats:', {
+      base: { hp: lizard.hp, atk: lizard.atk, def: lizard.def },
+      equipment: { hp: equipmentStats.hp, atk: equipmentStats.atk, def: equipmentStats.def },
+      total: { hp: totalStats.hp, atk: totalStats.atk, def: totalStats.def }
+    });
+  }
 
   return {
     lizard,
