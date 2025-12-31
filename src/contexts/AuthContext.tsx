@@ -221,7 +221,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const email = `${username}@creepz.local`;
 
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });

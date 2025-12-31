@@ -57,7 +57,7 @@ export function DMWindow({ window }: DMWindowProps) {
 
   if (!otherUserId || !otherUsername) {
     return (
-      <Window window={window} title="Direct Message">
+      <Window window={window}>
         <div className="flex items-center justify-center h-full bg-white">
           <div className="text-gray-600">Error: Invalid conversation</div>
         </div>
@@ -66,7 +66,7 @@ export function DMWindow({ window }: DMWindowProps) {
   }
 
   return (
-    <Window window={window} title={`DM: ${otherUsername}`}>
+    <Window window={window}>
       <div className="flex flex-col h-full bg-white">
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto">

@@ -99,7 +99,7 @@ export function RaidWindow({ window }: RaidWindowProps) {
                         @{link.username}
                       </div>
                       <div className="text-xs text-gray-600">
-                        {formatRelativeTime(link.created_at)}
+                        {formatRelativeTime(new Date(link.created_at).getTime())}
                       </div>
                     </div>
                     {user?.id === link.user_id && (

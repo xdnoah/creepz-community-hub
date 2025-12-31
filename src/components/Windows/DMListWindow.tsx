@@ -36,7 +36,7 @@ export function DMListWindow({ window }: DMListWindowProps) {
   };
 
   return (
-    <Window window={window} title={`Messages ${unreadCount > 0 ? `(${unreadCount})` : ''}`}>
+    <Window window={window}>
       <div className="flex flex-col h-full bg-white">
         <div className="flex-1 overflow-y-auto">
           {loading ? (

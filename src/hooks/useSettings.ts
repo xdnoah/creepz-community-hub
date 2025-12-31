@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
 import type { UserSettings } from '../types';
 
 const DEFAULT_SETTINGS: UserSettings = {

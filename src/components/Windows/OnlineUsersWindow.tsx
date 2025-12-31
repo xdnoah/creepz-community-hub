@@ -33,7 +33,7 @@ export function OnlineUsersWindow({ window }: OnlineUsersWindowProps) {
   };
 
   return (
-    <Window window={window} title="Who's Online">
+    <Window window={window}>
       <div className="flex flex-col h-full bg-white">
         <div className="flex-1 overflow-y-auto">
           {loading ? (

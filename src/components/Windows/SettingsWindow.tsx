@@ -3,7 +3,7 @@ import { Window } from './Window';
 import { useSettings } from '../../hooks/useSettings';
 import { Button95 } from '../ui/Button95';
 import { PANTONE_COLORS, WINDOWS_95_COLORS, CHAT_NAME_COLORS, isColorToDark } from '../../constants/colors';
-import type { WindowState, UserSettings } from '../../types';
+import type { WindowState } from '../../types';
 
 interface SettingsWindowProps {
   window: WindowState;
@@ -53,7 +53,7 @@ export function SettingsWindow({ window }: SettingsWindowProps) {
   };
 
   return (
-    <Window window={window} title="⚙️ Settings">
+    <Window window={window}>
       <div className="flex flex-col h-full bg-white">
         <div className="flex-1 overflow-y-auto p-4">
           {/* Background Color */}
