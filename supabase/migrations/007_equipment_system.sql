@@ -57,12 +57,7 @@ CREATE TABLE IF NOT EXISTS user_equipment (
 
   -- Timestamps
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-
-  -- Constraints
-  -- Only one of each equipment type can be equipped at a time
-  CONSTRAINT unique_equipped_type UNIQUE NULLS NOT DISTINCT (user_id, equipment_type, is_equipped)
-    WHERE is_equipped = true
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- Shop inventory (personal shop for each user, 6 slots)
@@ -101,6 +96,9 @@ CREATE INDEX idx_user_equipment_user_id ON user_equipment(user_id);
 CREATE INDEX idx_user_equipment_equipped ON user_equipment(user_id, is_equipped) WHERE is_equipped = true;
 CREATE INDEX idx_shop_inventory_user_id ON shop_inventory(user_id);
 CREATE INDEX idx_shop_inventory_refresh ON shop_inventory(user_id, last_refresh);
+
+-- Partial unique index to enforce only one equipped item per type per user
+CREATE UNIQUE INDEX unique_equipped_type ON user_equipment(user_id, equipment_type) WHERE is_equipped = true;
 
 -- RLS Policies
 ALTER TABLE user_equipment ENABLE ROW LEVEL SECURITY;
