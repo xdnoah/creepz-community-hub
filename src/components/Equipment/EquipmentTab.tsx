@@ -78,8 +78,6 @@ export function EquipmentTab({ userId }: EquipmentTabProps) {
 
     if (result.error) {
       alert(result.error);
-    } else if (result.goldReturned !== undefined) {
-      alert(`Sold for ${result.goldReturned} gold!`);
     }
   };
 

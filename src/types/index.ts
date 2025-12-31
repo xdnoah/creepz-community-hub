@@ -137,6 +137,8 @@ export interface Lizard {
   atk: number;
   crit_rate: number;
   crit_damage: number;
+  attack_speed: number;
+  regeneration: number;
   gold: number;
   passive_income: number;
   total_gold_earned: number;
@@ -231,7 +233,14 @@ export type EquipmentStatType =
   | 'def'
   | 'crit_rate'
   | 'crit_damage'
-  | 'gold_per_second';
+  | 'gold_per_second'
+  | 'attack_speed'
+  | 'regeneration';
+
+export interface EquipmentStat {
+  type: EquipmentStatType;
+  value: number;
+}
 
 export interface Equipment {
   id: string;
@@ -239,8 +248,7 @@ export interface Equipment {
   equipment_type: EquipmentType;
   rarity: EquipmentRarity;
   level: number;
-  stat_type: EquipmentStatType;
-  stat_value: number;
+  stats: EquipmentStat[];
   purchase_price: number;
   is_equipped: boolean;
   created_at: string;
@@ -254,8 +262,7 @@ export interface ShopItem {
   equipment_type: EquipmentType;
   rarity: EquipmentRarity;
   level: number;
-  stat_type: EquipmentStatType;
-  stat_value: number;
+  stats: EquipmentStat[];
   price: number;
   last_refresh: string;
   created_at: string;
@@ -322,6 +329,8 @@ export const STAT_TYPE_NAMES: Record<EquipmentStatType, string> = {
   crit_rate: 'Crit Rate',
   crit_damage: 'Crit Damage',
   gold_per_second: 'Gold/s',
+  attack_speed: 'ATK Speed',
+  regeneration: 'Regen',
 };
 
 export const STAT_TYPE_ICONS: Record<EquipmentStatType, string> = {
@@ -331,6 +340,8 @@ export const STAT_TYPE_ICONS: Record<EquipmentStatType, string> = {
   crit_rate: '🎯',
   crit_damage: '💥',
   gold_per_second: '💰',
+  attack_speed: '⚡',
+  regeneration: '💚',
 };
 
 export const WINDOW_DEFAULTS: Record<WindowType, WindowConfig> = {

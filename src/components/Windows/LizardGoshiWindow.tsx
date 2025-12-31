@@ -28,6 +28,7 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
     goldPerSecond,
     feedCooldownRemaining,
     canClaimDailyReward,
+    equipmentStats,
     totalStats,
     createLizard,
     levelUp,
@@ -360,25 +361,65 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
                   📊 COMBAT STATS
                 </div>
                 <div className="space-y-1 text-xs">
-                  <div className="flex justify-between items-center bg-red-50 px-2 py-1 rounded">
-                    <span className="font-bold text-red-600">❤️ HP</span>
-                    <span className="font-bold">{Math.floor(totalStats.hp)}</span>
+                  <div className="bg-red-50 px-2 py-1 rounded">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-red-600">❤️ HP</span>
+                      <span className="font-bold text-green-700">{Math.floor(totalStats.hp)}</span>
+                    </div>
+                    {equipmentStats.hp > 0 && (
+                      <div className="text-gray-500 text-[10px] flex justify-between">
+                        <span>{Math.floor(lizard.hp)} + {Math.floor(equipmentStats.hp)}</span>
+                        <span>⚔️</span>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex justify-between items-center bg-blue-50 px-2 py-1 rounded">
-                    <span className="font-bold text-blue-600">🛡️ DEF</span>
-                    <span className="font-bold">{Math.floor(totalStats.def)}</span>
+                  <div className="bg-blue-50 px-2 py-1 rounded">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-blue-600">🛡️ DEF</span>
+                      <span className="font-bold text-green-700">{Math.floor(totalStats.def)}</span>
+                    </div>
+                    {equipmentStats.def > 0 && (
+                      <div className="text-gray-500 text-[10px] flex justify-between">
+                        <span>{Math.floor(lizard.def)} + {Math.floor(equipmentStats.def)}</span>
+                        <span>⚔️</span>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex justify-between items-center bg-orange-50 px-2 py-1 rounded">
-                    <span className="font-bold text-orange-600">⚔️ ATK</span>
-                    <span className="font-bold">{Math.floor(totalStats.atk)}</span>
+                  <div className="bg-orange-50 px-2 py-1 rounded">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-orange-600">⚔️ ATK</span>
+                      <span className="font-bold text-green-700">{Math.floor(totalStats.atk)}</span>
+                    </div>
+                    {equipmentStats.atk > 0 && (
+                      <div className="text-gray-500 text-[10px] flex justify-between">
+                        <span>{Math.floor(lizard.atk)} + {Math.floor(equipmentStats.atk)}</span>
+                        <span>⚔️</span>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex justify-between items-center bg-purple-50 px-2 py-1 rounded">
-                    <span className="font-bold text-purple-600">💥 CRIT</span>
-                    <span className="font-bold">{formatStat('rate', totalStats.crit_rate)}</span>
+                  <div className="bg-purple-50 px-2 py-1 rounded">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-purple-600">💥 CRIT</span>
+                      <span className="font-bold text-green-700">{formatStat('rate', totalStats.crit_rate)}</span>
+                    </div>
+                    {equipmentStats.crit_rate > 0 && (
+                      <div className="text-gray-500 text-[10px] flex justify-between">
+                        <span>{formatStat('rate', lizard.crit_rate)} + {formatStat('rate', equipmentStats.crit_rate)}</span>
+                        <span>⚔️</span>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex justify-between items-center bg-purple-50 px-2 py-1 rounded">
-                    <span className="font-bold text-purple-600">💢 C.DMG</span>
-                    <span className="font-bold">{formatStat('damage', totalStats.crit_damage)}</span>
+                  <div className="bg-purple-50 px-2 py-1 rounded">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-purple-600">💢 C.DMG</span>
+                      <span className="font-bold text-green-700">{formatStat('damage', totalStats.crit_damage)}</span>
+                    </div>
+                    {equipmentStats.crit_damage > 0 && (
+                      <div className="text-gray-500 text-[10px] flex justify-between">
+                        <span>{formatStat('damage', lizard.crit_damage)} + {formatStat('damage', equipmentStats.crit_damage)}</span>
+                        <span>⚔️</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
