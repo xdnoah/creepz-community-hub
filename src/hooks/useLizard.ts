@@ -195,7 +195,7 @@ export function useLizard() {
       // Build update object
       const updates: any = {
         level: lizard.level + 1,
-        gold: lizard.gold - cost,
+        gold: Math.floor(lizard.gold - cost),
         total_levels_gained: lizard.total_levels_gained + 1,
       };
 
@@ -295,8 +295,8 @@ export function useLizard() {
           last_login: new Date().toISOString(),
           login_streak: newStreak,
           login_streak_claimed: true,
-          gold: lizard.gold + reward,
-          total_gold_earned: lizard.total_gold_earned + reward,
+          gold: Math.floor(lizard.gold + reward),
+          total_gold_earned: Math.floor(lizard.total_gold_earned + reward),
         })
         .eq('id', lizard.id)
         .select()
@@ -322,8 +322,8 @@ export function useLizard() {
       const { data, error: updateError } = await supabase
         .from('lizards')
         .update({
-          gold: lizard.gold + 100,
-          total_gold_earned: lizard.total_gold_earned + 100,
+          gold: Math.floor(lizard.gold + 100),
+          total_gold_earned: Math.floor(lizard.total_gold_earned + 100),
           messages_sent: lizard.messages_sent + 1,
         })
         .eq('id', lizard.id)
