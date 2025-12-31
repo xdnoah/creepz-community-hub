@@ -4,6 +4,9 @@ import { Button95 } from '../ui/Button95';
 import { Input95 } from '../ui/Input95';
 import { LoadingState } from '../ui/LoadingSkeleton';
 import { useLizard, calculateLevelUpCost, calculateDailyReward } from '../../hooks/useLizard';
+import { ShopTab } from '../Equipment/ShopTab';
+import { EquipmentTab } from '../Equipment/EquipmentTab';
+import { useAuth } from '../../contexts/AuthContext';
 import type { WindowState, StatIncrease } from '../../types';
 
 interface LizardGoshiWindowProps {
@@ -17,6 +20,7 @@ interface StatChangePopup {
 }
 
 export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
+  const { user } = useAuth();
   const {
     lizard,
     loading,
@@ -24,12 +28,14 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
     goldPerSecond,
     feedCooldownRemaining,
     canClaimDailyReward,
+    totalStats,
     createLizard,
     levelUp,
     feedLizard,
     claimDailyReward,
   } = useLizard();
 
+  const [activeTab, setActiveTab] = useState<'game' | 'shop' | 'equipment'>('game');
   const [showSetup, setShowSetup] = useState(false);
   const [setupName, setSetupName] = useState('');
   const [setupGender, setSetupGender] = useState<'male' | 'female'>('male');
@@ -234,15 +240,52 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
   const canLevelUp = lizard.gold >= levelUpCost;
   const nextDailyReward = lizard.login_streak < 7 ? calculateDailyReward(lizard.login_streak + 1) : calculateDailyReward(7);
   const lizardStage = getLizardStage(lizard.level);
-  const lizardPower = lizard.hp + lizard.def * 10 + lizard.atk * 20;
+  const lizardPower = Math.floor(totalStats.hp + totalStats.def * 10 + totalStats.atk * 20);
 
   return (
     <Window window={window}>
-      <div className="flex flex-col h-full bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 relative overflow-hidden">
-        {/* Level up effect overlay */}
-        {showLevelUpEffect && (
-          <div className="absolute inset-0 bg-yellow-400 animate-ping opacity-20 z-50 pointer-events-none" />
-        )}
+      <div className="flex flex-col h-full bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50">
+        {/* Tab Navigation */}
+        <div className="flex border-b-2 border-gray-400 bg-white">
+          <button
+            onClick={() => setActiveTab('game')}
+            className={`flex-1 px-4 py-2 font-bold text-sm border-r border-gray-400 ${
+              activeTab === 'game'
+                ? 'bg-emerald-500 text-white'
+                : 'bg-gray-100 hover:bg-gray-200'
+            }`}
+          >
+            🦎 Game
+          </button>
+          <button
+            onClick={() => setActiveTab('shop')}
+            className={`flex-1 px-4 py-2 font-bold text-sm border-r border-gray-400 ${
+              activeTab === 'shop'
+                ? 'bg-purple-500 text-white'
+                : 'bg-gray-100 hover:bg-gray-200'
+            }`}
+          >
+            🏪 Shop
+          </button>
+          <button
+            onClick={() => setActiveTab('equipment')}
+            className={`flex-1 px-4 py-2 font-bold text-sm ${
+              activeTab === 'equipment'
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-100 hover:bg-gray-200'
+            }`}
+          >
+            ⚔️ Equipment
+          </button>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'game' && (
+          <div className="flex-1 relative overflow-hidden">
+            {/* Level up effect overlay */}
+            {showLevelUpEffect && (
+              <div className="absolute inset-0 bg-yellow-400 animate-ping opacity-20 z-50 pointer-events-none" />
+            )}
 
         {/* Stat Change Popup */}
         {statChangePopup && (
@@ -319,23 +362,23 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
                 <div className="space-y-1 text-xs">
                   <div className="flex justify-between items-center bg-red-50 px-2 py-1 rounded">
                     <span className="font-bold text-red-600">❤️ HP</span>
-                    <span className="font-bold">{lizard.hp}</span>
+                    <span className="font-bold">{Math.floor(totalStats.hp)}</span>
                   </div>
                   <div className="flex justify-between items-center bg-blue-50 px-2 py-1 rounded">
                     <span className="font-bold text-blue-600">🛡️ DEF</span>
-                    <span className="font-bold">{lizard.def}</span>
+                    <span className="font-bold">{Math.floor(totalStats.def)}</span>
                   </div>
                   <div className="flex justify-between items-center bg-orange-50 px-2 py-1 rounded">
                     <span className="font-bold text-orange-600">⚔️ ATK</span>
-                    <span className="font-bold">{lizard.atk}</span>
+                    <span className="font-bold">{Math.floor(totalStats.atk)}</span>
                   </div>
                   <div className="flex justify-between items-center bg-purple-50 px-2 py-1 rounded">
                     <span className="font-bold text-purple-600">💥 CRIT</span>
-                    <span className="font-bold">{formatStat('rate', lizard.crit_rate)}</span>
+                    <span className="font-bold">{formatStat('rate', totalStats.crit_rate)}</span>
                   </div>
                   <div className="flex justify-between items-center bg-purple-50 px-2 py-1 rounded">
                     <span className="font-bold text-purple-600">💢 C.DMG</span>
-                    <span className="font-bold">{formatStat('damage', lizard.crit_damage)}</span>
+                    <span className="font-bold">{formatStat('damage', totalStats.crit_damage)}</span>
                   </div>
                 </div>
               </div>
@@ -451,12 +494,24 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
           </div>
         </div>
 
-        {/* Footer Info */}
-        <div className="border-t-2 border-gray-400 p-1 bg-gradient-to-r from-emerald-100 to-teal-100">
-          <div className="text-xs text-gray-700 text-center font-bold">
-            💬 Chat messages = +100 gold each! | 💤 Gold accumulates offline
+            {/* Footer Info */}
+            <div className="border-t-2 border-gray-400 p-1 bg-gradient-to-r from-emerald-100 to-teal-100">
+              <div className="text-xs text-gray-700 text-center font-bold">
+                💬 Chat messages = +100 gold each! | 💤 Gold accumulates offline
+              </div>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Shop Tab */}
+        {activeTab === 'shop' && user && (
+          <ShopTab userId={user.id} userGold={lizard.gold} />
+        )}
+
+        {/* Equipment Tab */}
+        {activeTab === 'equipment' && user && (
+          <EquipmentTab userId={user.id} />
+        )}
       </div>
     </Window>
   );

@@ -204,6 +204,135 @@ export interface ActivityLog {
   created_at: string;
 }
 
+// Equipment System Types
+export type EquipmentType =
+  | 'helmet'
+  | 'chest'
+  | 'gloves'
+  | 'boots'
+  | 'weapon'
+  | 'shield'
+  | 'ring'
+  | 'necklace'
+  | 'belt'
+  | 'cape';
+
+export type EquipmentRarity =
+  | 'common'      // 57.45%
+  | 'uncommon'    // 30%
+  | 'rare'        // 10%
+  | 'epic'        // 2%
+  | 'legendary'   // 0.5%
+  | 'mythical';   // 0.05%
+
+export type EquipmentStatType =
+  | 'hp'
+  | 'atk'
+  | 'def'
+  | 'crit_rate'
+  | 'crit_damage'
+  | 'gold_per_second';
+
+export interface Equipment {
+  id: string;
+  user_id: string;
+  equipment_type: EquipmentType;
+  rarity: EquipmentRarity;
+  level: number;
+  stat_type: EquipmentStatType;
+  stat_value: number;
+  purchase_price: number;
+  is_equipped: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ShopItem {
+  id: string;
+  user_id: string;
+  slot: number;
+  equipment_type: EquipmentType;
+  rarity: EquipmentRarity;
+  level: number;
+  stat_type: EquipmentStatType;
+  stat_value: number;
+  price: number;
+  last_refresh: string;
+  created_at: string;
+}
+
+// Equipment display names and colors
+export const EQUIPMENT_TYPE_NAMES: Record<EquipmentType, string> = {
+  helmet: 'Helmet',
+  chest: 'Chest Armor',
+  gloves: 'Gloves',
+  boots: 'Boots',
+  weapon: 'Weapon',
+  shield: 'Shield',
+  ring: 'Ring',
+  necklace: 'Necklace',
+  belt: 'Belt',
+  cape: 'Cape',
+};
+
+export const EQUIPMENT_TYPE_ICONS: Record<EquipmentType, string> = {
+  helmet: '⛑️',
+  chest: '🛡️',
+  gloves: '🧤',
+  boots: '👢',
+  weapon: '⚔️',
+  shield: '🛡️',
+  ring: '💍',
+  necklace: '📿',
+  belt: '🥋',
+  cape: '🧥',
+};
+
+export const RARITY_COLORS: Record<EquipmentRarity, string> = {
+  common: 'bg-gray-400 text-gray-900',
+  uncommon: 'bg-green-500 text-white',
+  rare: 'bg-blue-500 text-white',
+  epic: 'bg-purple-600 text-white',
+  legendary: 'bg-yellow-500 text-gray-900',
+  mythical: 'bg-red-600 text-white',
+};
+
+export const RARITY_BORDER_COLORS: Record<EquipmentRarity, string> = {
+  common: 'border-gray-400',
+  uncommon: 'border-green-500',
+  rare: 'border-blue-500',
+  epic: 'border-purple-600',
+  legendary: 'border-yellow-500',
+  mythical: 'border-red-600',
+};
+
+export const RARITY_NAMES: Record<EquipmentRarity, string> = {
+  common: 'Common',
+  uncommon: 'Uncommon',
+  rare: 'Rare',
+  epic: 'Epic',
+  legendary: 'Legendary',
+  mythical: 'Mythical',
+};
+
+export const STAT_TYPE_NAMES: Record<EquipmentStatType, string> = {
+  hp: 'HP',
+  atk: 'ATK',
+  def: 'DEF',
+  crit_rate: 'Crit Rate',
+  crit_damage: 'Crit Damage',
+  gold_per_second: 'Gold/s',
+};
+
+export const STAT_TYPE_ICONS: Record<EquipmentStatType, string> = {
+  hp: '❤️',
+  atk: '⚔️',
+  def: '🛡️',
+  crit_rate: '🎯',
+  crit_damage: '💥',
+  gold_per_second: '💰',
+};
+
 export const WINDOW_DEFAULTS: Record<WindowType, WindowConfig> = {
   auth: { width: 380, height: 340, x: 470, y: 220, minWidth: 320, minHeight: 300 },
   chat: { width: 500, height: 400, x: 50, y: 50, minWidth: 400, minHeight: 300 },

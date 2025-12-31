@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import type { Lizard, StatIncrease } from '../types';
+import type { Lizard, StatIncrease, Equipment } from '../types';
 
 // Helper to log activity without circular dependency
 const logLizardActivity = async (userId: string, username: string, activityType: string, metadata?: any) => {
@@ -60,6 +60,46 @@ export function useLizard() {
   const [goldPerSecond, setGoldPerSecond] = useState(0);
   const [feedCooldownRemaining, setFeedCooldownRemaining] = useState(0);
   const [canClaimDailyReward, setCanClaimDailyReward] = useState(false);
+  const [equipmentStats, setEquipmentStats] = useState({
+    hp: 0,
+    atk: 0,
+    def: 0,
+    crit_rate: 0,
+    crit_damage: 0,
+    gold_per_second: 0,
+  });
+
+  // Fetch and calculate equipment stats
+  const fetchEquipmentStats = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('user_equipment')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_equipped', true);
+
+      if (fetchError) throw fetchError;
+
+      const stats = {
+        hp: 0,
+        atk: 0,
+        def: 0,
+        crit_rate: 0,
+        crit_damage: 0,
+        gold_per_second: 0,
+      };
+
+      (data || []).forEach((item: Equipment) => {
+        stats[item.stat_type] += item.stat_value;
+      });
+
+      setEquipmentStats(stats);
+    } catch (err: any) {
+      console.error('Error fetching equipment stats:', err);
+    }
+  }, [user]);
 
   // Fetch lizard from database
   const fetchLizard = useCallback(async () => {
@@ -125,8 +165,8 @@ export function useLizard() {
 
   // Update derived stats like gold per second and feed cooldown
   const updateDerivedStats = (lizardData: Lizard) => {
-    // Calculate current gold per second
-    let gps = lizardData.passive_income;
+    // Calculate current gold per second (base + equipment bonus)
+    let gps = lizardData.passive_income + equipmentStats.gold_per_second;
     if (lizardData.is_fed && lizardData.fed_at) {
       const fedTime = new Date(lizardData.fed_at).getTime();
       const now = Date.now();
@@ -388,12 +428,60 @@ export function useLizard() {
     return () => clearInterval(interval);
   }, [feedCooldownRemaining]);
 
-  // Fetch lizard on mount
+  // Fetch lizard and equipment on mount
   useEffect(() => {
     if (user) {
       fetchLizard();
+      fetchEquipmentStats();
     }
-  }, [user, fetchLizard]);
+  }, [user, fetchLizard, fetchEquipmentStats]);
+
+  // Update derived stats when equipment stats change
+  useEffect(() => {
+    if (lizard) {
+      updateDerivedStats(lizard);
+    }
+  }, [equipmentStats]);
+
+  // Subscribe to equipment changes
+  useEffect(() => {
+    if (!user) return;
+
+    const subscription = supabase
+      .channel(`equipment_${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_equipment',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          fetchEquipmentStats();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [user, fetchEquipmentStats]);
+
+  // Calculate total stats (base + equipment)
+  const totalStats = lizard ? {
+    hp: lizard.hp + equipmentStats.hp,
+    atk: lizard.atk + equipmentStats.atk,
+    def: lizard.def + equipmentStats.def,
+    crit_rate: lizard.crit_rate + equipmentStats.crit_rate,
+    crit_damage: lizard.crit_damage + equipmentStats.crit_damage,
+  } : {
+    hp: 0,
+    atk: 0,
+    def: 0,
+    crit_rate: 0,
+    crit_damage: 0,
+  };
 
   return {
     lizard,
@@ -402,6 +490,8 @@ export function useLizard() {
     goldPerSecond,
     feedCooldownRemaining,
     canClaimDailyReward,
+    equipmentStats,
+    totalStats,
     createLizard,
     levelUp,
     feedLizard,
