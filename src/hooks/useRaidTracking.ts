@@ -37,7 +37,7 @@ export function useRaidTracking() {
   }, [user]);
 
   // Mark tweet as raided
-  const markAsRaided = async (raidLinkId: string): Promise<{ error?: string }> => {
+  const markAsRaided = async (raidLinkId: string): Promise<{ error?: string; goldEarned?: number }> => {
     if (!user) return { error: 'Not authenticated' };
 
     try {
@@ -63,13 +63,30 @@ export function useRaidTracking() {
 
       if (insertError) throw insertError;
 
+      // Award 500 gold to user's lizard
+      const { data: lizard } = await supabase
+        .from('lizards')
+        .select('gold, total_gold_earned')
+        .eq('id', user.id)
+        .single();
+
+      if (lizard) {
+        await supabase
+          .from('lizards')
+          .update({
+            gold: Math.floor(lizard.gold + 500),
+            total_gold_earned: Math.floor(lizard.total_gold_earned + 500),
+          })
+          .eq('id', user.id);
+      }
+
       // Clean up old tweets if exceeded limit
       await cleanupOldRaidedTweets();
 
       // Refresh list
       await fetchRaidedTweets();
 
-      return {};
+      return { goldEarned: 500 };
     } catch (err: any) {
       console.error('Error marking tweet as raided:', err);
       return { error: err.message || 'Failed to mark tweet as raided' };

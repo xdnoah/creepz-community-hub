@@ -18,6 +18,7 @@ import { DMWindow } from '../Windows/DMWindow';
 import { SettingsWindow } from '../Windows/SettingsWindow';
 import { RaidWindow } from '../Windows/RaidWindow';
 import { LizardGoshiWindow } from '../Windows/LizardGoshiWindow';
+import { ActivityWindow } from '../Windows/ActivityWindow';
 import { NotificationContainer } from '../ui/NotificationToast';
 
 interface DesktopProps {
@@ -97,6 +98,11 @@ export function Desktop({ showAuthWindow = false }: DesktopProps) {
           label="LizardGoshi"
           onDoubleClick={() => openWindow('lizardgoshi')}
         />
+        <DesktopIcon
+          icon="📊"
+          label="Activity"
+          onDoubleClick={() => openWindow('activity')}
+        />
       </div>
 
       {/* Windows */}
@@ -126,6 +132,8 @@ export function Desktop({ showAuthWindow = false }: DesktopProps) {
             return <RaidWindow key={window.id} window={window} />;
           case 'lizardgoshi':
             return <LizardGoshiWindow key={window.id} window={window} />;
+          case 'activity':
+            return <ActivityWindow key={window.id} window={window} />;
           default:
             return null;
         }

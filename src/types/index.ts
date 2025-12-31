@@ -1,4 +1,4 @@
-export type WindowType = 'auth' | 'chat' | 'myProfile' | 'profile' | 'sales' | 'twitter' | 'onlineUsers' | 'dmList' | 'dm' | 'settings' | 'raid' | 'lizardgoshi';
+export type WindowType = 'auth' | 'chat' | 'myProfile' | 'profile' | 'sales' | 'twitter' | 'onlineUsers' | 'dmList' | 'dm' | 'settings' | 'raid' | 'lizardgoshi' | 'activity';
 
 export interface WindowConfig {
   width: number;
@@ -180,6 +180,24 @@ export interface Achievement {
   unlocked: boolean;
 }
 
+export type ActivityType =
+  | 'user_joined'
+  | 'raid_added'
+  | 'tweet_raided'
+  | 'lizard_levelup'
+  | 'login_streak_milestone'
+  | 'lizard_fed'
+  | 'daily_reward_claimed';
+
+export interface ActivityLog {
+  id: string;
+  user_id: string;
+  username: string;
+  activity_type: ActivityType;
+  metadata: Record<string, any> | null;
+  created_at: string;
+}
+
 export const WINDOW_DEFAULTS: Record<WindowType, WindowConfig> = {
   auth: { width: 380, height: 340, x: 470, y: 220, minWidth: 320, minHeight: 300 },
   chat: { width: 500, height: 400, x: 50, y: 50, minWidth: 400, minHeight: 300 },
@@ -193,6 +211,7 @@ export const WINDOW_DEFAULTS: Record<WindowType, WindowConfig> = {
   settings: { width: 520, height: 580, x: 250, y: 80, minWidth: 480, minHeight: 500 },
   raid: { width: 450, height: 500, x: 420, y: 70, minWidth: 400, minHeight: 450 },
   lizardgoshi: { width: 550, height: 600, x: 350, y: 50, minWidth: 500, minHeight: 550 },
+  activity: { width: 500, height: 450, x: 380, y: 90, minWidth: 450, minHeight: 400 },
 };
 
 export const MOBILE_BREAKPOINT = 1024;

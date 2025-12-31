@@ -3,6 +3,22 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import type { Lizard, StatIncrease } from '../types';
 
+// Helper to log activity without circular dependency
+const logLizardActivity = async (userId: string, username: string, activityType: string, metadata?: any) => {
+  try {
+    await supabase
+      .from('activity_logs')
+      .insert({
+        user_id: userId,
+        username: username,
+        activity_type: activityType,
+        metadata: metadata || null,
+      });
+  } catch (err) {
+    console.error('Error logging lizard activity:', err);
+  }
+};
+
 // Game formulas
 export const calculateLevelUpCost = (level: number): number => {
   return Math.floor(100 * Math.pow(level, 2.5));
@@ -220,6 +236,12 @@ export function useLizard() {
 
       setLizard(data);
       updateDerivedStats(data);
+
+      // Log level up activity (milestones only: every 5 levels)
+      if (user && data.level % 5 === 0) {
+        await logLizardActivity(user.id, user.username, 'lizard_levelup', { level: data.level });
+      }
+
       return { statIncrease };
     } catch (err: any) {
       console.error('Error leveling up:', err);

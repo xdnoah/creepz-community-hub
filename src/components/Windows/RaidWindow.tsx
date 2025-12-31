@@ -6,6 +6,7 @@ import { LoadingState } from '../ui/LoadingSkeleton';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRaidLinks } from '../../hooks/useRaidLinks';
 import { useRaidTracking } from '../../hooks/useRaidTracking';
+import { useActivityLogs } from '../../hooks/useActivityLogs';
 import { formatRelativeTime } from '../../lib/utils';
 import type { WindowState } from '../../types';
 
@@ -19,11 +20,13 @@ export function RaidWindow({ window }: RaidWindowProps) {
   const { user } = useAuth();
   const { links, loading: linksLoading, error: linksError, addLink, deleteLink, retry } = useRaidLinks();
   const { raidedTweets, loading: raidedLoading, markAsRaided, isRaided } = useRaidTracking();
+  const { logActivity } = useActivityLogs();
   const [activeTab, setActiveTab] = useState<TabType>('new');
   const [tweetUrl, setTweetUrl] = useState('');
   const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [goldNotification, setGoldNotification] = useState(false);
 
   const isValidTwitterUrl = (url: string) => {
     const twitterRegex = /^https?:\/\/(www\.)?(twitter\.com|x\.com)\/[a-zA-Z0-9_]+\/status\/\d+/;
@@ -47,6 +50,8 @@ export function RaidWindow({ window }: RaidWindowProps) {
     if (result.error) {
       setSubmitError(result.error);
     } else {
+      // Log activity
+      await logActivity('raid_added');
       setTweetUrl('');
       setDescription('');
     }
@@ -60,8 +65,18 @@ export function RaidWindow({ window }: RaidWindowProps) {
   };
 
   const handleRaidClick = async (linkId: string, url: string) => {
-    // Mark as raided
-    await markAsRaided(linkId);
+    // Mark as raided and get gold reward
+    const result = await markAsRaided(linkId);
+
+    if (!result.error && result.goldEarned) {
+      // Show gold notification
+      setGoldNotification(true);
+      setTimeout(() => setGoldNotification(false), 3000);
+
+      // Log activity
+      await logActivity('tweet_raided');
+    }
+
     // Open tweet in new tab
     globalThis.window.open(url, '_blank', 'noopener,noreferrer');
   };
@@ -78,12 +93,24 @@ export function RaidWindow({ window }: RaidWindowProps) {
 
   return (
     <Window window={window}>
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full relative">
+        {/* Gold Reward Notification */}
+        {goldNotification && (
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none">
+            <div className="bg-gradient-to-r from-yellow-400 to-orange-400 border-4 border-yellow-600 p-4 rounded-lg shadow-2xl animate-bounce">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white mb-1">💰 +500 GOLD!</div>
+                <div className="text-sm text-yellow-900 font-bold">Raid successful!</div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Header/Info */}
         <div className="bg-red-600 text-white p-3 border-b-2 border-gray-400">
           <div className="font-bold text-lg">🚀 RAID PARTY</div>
           <div className="text-xs opacity-90">
-            Share tweets to raid together! Let's support the community!
+            Share tweets to raid together! Support = +500 gold!
           </div>
         </div>
 
