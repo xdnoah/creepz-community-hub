@@ -9,7 +9,7 @@ interface DMListWindowProps {
 }
 
 export function DMListWindow({ window }: DMListWindowProps) {
-  const { conversations, loading, error, unreadCount, retry } = useDMs();
+  const { conversations, loading, error, retry } = useDMs();
   const { openWindow } = useWindowManager();
 
   const handleConversationClick = (userId: string, username: string) => {
