@@ -177,10 +177,14 @@ export function useEquipment(userId: string | undefined) {
       crit_rate: 0,
       crit_damage: 0,
       gold_per_second: 0,
+      attack_speed: 0,
+      regeneration: 0,
     };
 
     equipped.forEach((item) => {
-      stats[item.stat_type] += item.stat_value;
+      item.stats.forEach((stat) => {
+        stats[stat.type] += stat.value;
+      });
     });
 
     return stats;

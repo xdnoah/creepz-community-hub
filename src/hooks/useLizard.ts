@@ -67,6 +67,8 @@ export function useLizard() {
     crit_rate: 0,
     crit_damage: 0,
     gold_per_second: 0,
+    attack_speed: 0,
+    regeneration: 0,
   });
 
   // Fetch and calculate equipment stats
@@ -89,10 +91,14 @@ export function useLizard() {
         crit_rate: 0,
         crit_damage: 0,
         gold_per_second: 0,
+        attack_speed: 0,
+        regeneration: 0,
       };
 
       (data || []).forEach((item: Equipment) => {
-        stats[item.stat_type] += item.stat_value;
+        item.stats.forEach((stat) => {
+          stats[stat.type] += stat.value;
+        });
       });
 
       console.log('[Equipment] Loaded stats:', stats);
@@ -481,12 +487,16 @@ export function useLizard() {
     def: lizard.def + equipmentStats.def,
     crit_rate: lizard.crit_rate + equipmentStats.crit_rate,
     crit_damage: lizard.crit_damage + equipmentStats.crit_damage,
+    attack_speed: lizard.attack_speed + equipmentStats.attack_speed,
+    regeneration: lizard.regeneration + equipmentStats.regeneration,
   } : {
     hp: 0,
     atk: 0,
     def: 0,
     crit_rate: 0,
     crit_damage: 0,
+    attack_speed: 0,
+    regeneration: 0,
   };
 
   // Debug logging

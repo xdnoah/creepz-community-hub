@@ -32,12 +32,15 @@ export function EquipmentCard({
   secondaryColor = 'bg-gray-500 hover:bg-gray-600',
   showPrice = false,
 }: EquipmentCardProps) {
-  const formatStatValue = (value: number): string => {
-    if (item.stat_type === 'crit_rate' || item.stat_type === 'crit_damage') {
+  const formatStatValue = (type: string, value: number): string => {
+    if (type === 'crit_rate' || type === 'crit_damage') {
       return `+${(value * 100).toFixed(1)}%`;
     }
-    if (item.stat_type === 'gold_per_second') {
+    if (type === 'gold_per_second' || type === 'regeneration') {
       return `+${value.toFixed(1)}/s`;
+    }
+    if (type === 'attack_speed') {
+      return `+${Math.floor(value)}`;
     }
     return `+${Math.floor(value)}`;
   };
@@ -67,16 +70,18 @@ export function EquipmentCard({
         </div>
 
         {/* Stats */}
-        <div className="bg-gray-50 rounded p-2 mb-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1 text-sm font-semibold text-gray-700">
-              <span>{STAT_TYPE_ICONS[item.stat_type]}</span>
-              <span>{STAT_TYPE_NAMES[item.stat_type]}</span>
+        <div className="bg-gray-50 rounded p-2 mb-2 space-y-1">
+          {item.stats.map((stat, index) => (
+            <div key={index} className="flex items-center justify-between">
+              <div className="flex items-center gap-1 text-xs font-semibold text-gray-700">
+                <span>{STAT_TYPE_ICONS[stat.type]}</span>
+                <span>{STAT_TYPE_NAMES[stat.type]}</span>
+              </div>
+              <div className="text-sm font-bold text-green-600">
+                {formatStatValue(stat.type, stat.value)}
+              </div>
             </div>
-            <div className="text-lg font-bold text-green-600">
-              {formatStatValue(item.stat_value)}
-            </div>
-          </div>
+          ))}
         </div>
 
         {/* Price */}

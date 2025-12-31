@@ -132,8 +132,7 @@ export function useShop(userId: string | undefined) {
           equipment_type: shopItem.equipment_type,
           rarity: shopItem.rarity,
           level: shopItem.level,
-          stat_type: shopItem.stat_type,
-          stat_value: shopItem.stat_value,
+          stats: shopItem.stats,
           purchase_price: shopItem.price,
           is_equipped: false,
         });
