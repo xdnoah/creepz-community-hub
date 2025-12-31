@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Rnd } from 'react-rnd';
 import { useWindowManager } from '../../contexts/WindowContext';
+import { useMobile } from '../../contexts/MobileContext';
 import type { WindowState } from '../../types';
 import { WINDOW_DEFAULTS } from '../../types';
 
@@ -12,9 +13,15 @@ interface WindowProps {
 
 export function Window({ window, children, canClose = true }: WindowProps) {
   const { closeWindow, minimizeWindow, maximizeWindow, restoreWindow, focusWindow, updateWindowPosition, updateWindowSize } = useWindowManager();
+  const { isMobileMode } = useMobile();
 
   if (window.isMinimized) {
     return null;
+  }
+
+  // In mobile mode, just render children without window chrome
+  if (isMobileMode) {
+    return <div className="h-full w-full">{children}</div>;
   }
 
   const config = WINDOW_DEFAULTS[window.type];

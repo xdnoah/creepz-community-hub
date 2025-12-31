@@ -1,6 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { DesktopIcon } from './DesktopIcon';
 import { Taskbar } from './Taskbar';
+import { MobileView } from '../Mobile/MobileView';
+import { MobileProvider } from '../../contexts/MobileContext';
 import { useWindowManager } from '../../contexts/WindowContext';
 import { usePresence } from '../../hooks/usePresence';
 import { useDMs } from '../../hooks/useDMs';
@@ -20,6 +22,7 @@ import { RaidWindow } from '../Windows/RaidWindow';
 import { LizardGoshiWindow } from '../Windows/LizardGoshiWindow';
 import { ActivityWindow } from '../Windows/ActivityWindow';
 import { NotificationContainer } from '../ui/NotificationToast';
+import { MOBILE_BREAKPOINT } from '../../types';
 
 interface DesktopProps {
   showAuthWindow?: boolean;
@@ -28,6 +31,7 @@ interface DesktopProps {
 export function Desktop({ showAuthWindow = false }: DesktopProps) {
   const { windows, openWindow, closeWindow } = useWindowManager();
   const { notifications, addNotification, removeNotification } = useNotifications();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < MOBILE_BREAKPOINT);
 
   // Initialize settings (applies background color, font size, etc.)
   useSettings();
@@ -39,6 +43,16 @@ export function Desktop({ showAuthWindow = false }: DesktopProps) {
   // Track unread DMs for notifications
   // Will gracefully fail if database tables not set up
   const { unreadCount } = useDMs();
+
+  // Detect mobile/desktop on resize
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (showAuthWindow) {
@@ -59,8 +73,15 @@ export function Desktop({ showAuthWindow = false }: DesktopProps) {
     }
   }, [unreadCount, addNotification]);
 
+  // Show mobile view on mobile devices
+  if (isMobile && !showAuthWindow) {
+    return <MobileView />;
+  }
+
+  // Show desktop view
   return (
-    <div className="desktop-background">
+    <MobileProvider isMobile={false}>
+      <div className="desktop-background">
       {/* Desktop Icons */}
       <div className="absolute top-4 left-4 flex flex-col gap-2">
         <DesktopIcon
@@ -148,5 +169,6 @@ export function Desktop({ showAuthWindow = false }: DesktopProps) {
       {/* Taskbar */}
       <Taskbar />
     </div>
+    </MobileProvider>
   );
 }
