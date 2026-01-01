@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { DesktopIcon } from './DesktopIcon';
 import { Taskbar } from './Taskbar';
+import { TopBar } from './TopBar';
 import { MobileView } from '../Mobile/MobileView';
 import { MobileProvider } from '../../contexts/MobileContext';
 import { useWindowManager } from '../../contexts/WindowContext';
@@ -84,8 +85,11 @@ export function Desktop({ showAuthWindow = false }: DesktopProps) {
   return (
     <MobileProvider isMobile={false}>
       <div className="desktop-background">
+      {/* Top Bar */}
+      <TopBar />
+
       {/* Desktop Icons */}
-      <div className="absolute top-4 left-4 flex gap-2">
+      <div className="absolute top-16 left-4 flex gap-2">
         {/* Column 1 */}
         <div className="flex flex-col gap-2">
           <DesktopIcon
