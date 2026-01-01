@@ -8,48 +8,46 @@ export function TopBar() {
   if (!user || loading || !lizard) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 h-12 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 border-b-4 border-gray-800 shadow-lg z-50 flex items-center justify-between px-6">
+    <div className="fixed top-0 left-0 right-0 h-10 bg-win95-gray border-b-2 border-t-white border-l-white border-r-gray-800 border-b-gray-800 z-50 flex items-center justify-between px-3" style={{ boxShadow: 'inset 1px 1px 0px rgba(255,255,255,0.7), inset -1px -1px 0px rgba(0,0,0,0.3)' }}>
       {/* Left Side - Lizard Info */}
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2 bg-white bg-opacity-20 backdrop-blur-sm px-4 py-1.5 rounded-full border-2 border-white border-opacity-30">
-          <span className="text-2xl">🦎</span>
-          <div className="flex flex-col">
-            <span className="text-sm font-bold text-white leading-none">{lizard.name}</span>
-            <span className="text-xs text-white text-opacity-80">Level {lizard.level}</span>
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 bg-white border-2 border-t-gray-800 border-l-gray-800 border-r-white border-b-white px-3 py-1" style={{ boxShadow: 'inset -1px -1px 0px rgba(255,255,255,0.7), inset 1px 1px 0px rgba(0,0,0,0.5)' }}>
+          <span className="text-lg">🦎</span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-gray-900">{lizard.name}</span>
+            <span className="text-xs text-gray-600">Lv.{lizard.level}</span>
           </div>
         </div>
       </div>
 
       {/* Center - Gold Display */}
-      <div className="flex items-center gap-2 bg-yellow-400 px-6 py-2 rounded-full border-2 border-yellow-600 shadow-lg">
-        <span className="text-2xl">💰</span>
-        <div className="flex flex-col items-center">
-          <span className="text-lg font-black text-yellow-900 leading-none">
-            {Math.floor(lizard.gold).toLocaleString()}
-          </span>
-          <span className="text-[10px] text-yellow-800 font-bold">GOLD</span>
-        </div>
+      <div className="flex items-center gap-2 bg-white border-2 border-t-gray-800 border-l-gray-800 border-r-white border-b-white px-4 py-1" style={{ boxShadow: 'inset -1px -1px 0px rgba(255,255,255,0.7), inset 1px 1px 0px rgba(0,0,0,0.5)' }}>
+        <span className="text-lg">💰</span>
+        <span className="text-sm font-bold text-gray-900">
+          {Math.floor(lizard.gold).toLocaleString()}
+        </span>
+        <span className="text-xs text-gray-600">G</span>
       </div>
 
       {/* Right Side - Rank Display */}
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 bg-white bg-opacity-20 backdrop-blur-sm px-4 py-1.5 rounded-full border-2 border-white border-opacity-30">
-          <span className="text-2xl">🏆</span>
-          <div className="flex flex-col">
-            <span className="text-xs text-white text-opacity-80 leading-none">Rank Points</span>
-            <span className="text-sm font-bold text-white">{lizard.rank_points.toLocaleString()}</span>
-          </div>
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 bg-white border-2 border-t-gray-800 border-l-gray-800 border-r-white border-b-white px-3 py-1" style={{ boxShadow: 'inset -1px -1px 0px rgba(255,255,255,0.7), inset 1px 1px 0px rgba(0,0,0,0.5)' }}>
+          <span className="text-lg">🏆</span>
+          <span className="text-xs text-gray-600">RP:</span>
+          <span className="text-sm font-bold text-gray-900">{lizard.rank_points.toLocaleString()}</span>
         </div>
 
-        <div className={`px-4 py-1.5 rounded-full border-2 font-bold text-sm ${
-          lizard.rank_tier === 'legend' ? 'bg-purple-500 border-purple-700 text-white' :
-          lizard.rank_tier === 'diamond' ? 'bg-cyan-400 border-cyan-600 text-gray-900' :
-          lizard.rank_tier === 'platinum' ? 'bg-gray-300 border-gray-500 text-gray-900' :
-          lizard.rank_tier === 'gold' ? 'bg-yellow-400 border-yellow-600 text-gray-900' :
-          lizard.rank_tier === 'silver' ? 'bg-gray-400 border-gray-600 text-gray-900' :
-          'bg-orange-600 border-orange-800 text-white'
-        }`}>
-          {lizard.rank_tier.toUpperCase()}
+        <div className="bg-win95-gray border-2 border-t-white border-l-white border-r-gray-800 border-b-gray-800 px-3 py-1">
+          <span className={`text-xs font-bold ${
+            lizard.rank_tier === 'legend' ? 'text-purple-700' :
+            lizard.rank_tier === 'diamond' ? 'text-cyan-600' :
+            lizard.rank_tier === 'platinum' ? 'text-gray-600' :
+            lizard.rank_tier === 'gold' ? 'text-yellow-700' :
+            lizard.rank_tier === 'silver' ? 'text-gray-500' :
+            'text-orange-700'
+          }`}>
+            {lizard.rank_tier.toUpperCase()}
+          </span>
         </div>
       </div>
     </div>

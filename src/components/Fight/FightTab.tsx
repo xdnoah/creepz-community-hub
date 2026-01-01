@@ -16,7 +16,7 @@ interface FightTabProps {
   currentLizardName: string;
 }
 
-export function FightTab({ currentLizardId, currentLizardName }: FightTabProps) {
+export function FightTab({ currentLizardId }: FightTabProps) {
   const { openWindow } = useWindowManager();
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,10 +70,8 @@ export function FightTab({ currentLizardId, currentLizardName }: FightTabProps) 
 
       // Open fight window
       openWindow('lizardFight', {
-        attackerId: currentLizardId,
-        attackerName: currentLizardName,
-        defenderId: opponent.id,
-        defenderName: opponent.name,
+        attacker: currentLizardId,
+        defender: opponent.id,
       });
     } catch (err: any) {
       console.error('Error finding random opponent:', err);
@@ -81,17 +79,15 @@ export function FightTab({ currentLizardId, currentLizardName }: FightTabProps) 
     }
   };
 
-  const handleFightLizard = (defenderId: string, defenderName: string) => {
+  const handleFightLizard = (defenderId: string) => {
     if (defenderId === currentLizardId) {
       alert("You can't fight yourself!");
       return;
     }
 
     openWindow('lizardFight', {
-      attackerId: currentLizardId,
-      attackerName: currentLizardName,
-      defenderId,
-      defenderName,
+      attacker: currentLizardId,
+      defender: defenderId,
     });
   };
 
@@ -259,7 +255,7 @@ export function FightTab({ currentLizardId, currentLizardName }: FightTabProps) 
                           <span className="text-xs text-gray-500">-</span>
                         ) : (
                           <button
-                            onClick={() => handleFightLizard(entry.id, entry.name)}
+                            onClick={() => handleFightLizard(entry.id)}
                             className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded transition-colors"
                           >
                             ⚔️ Fight
