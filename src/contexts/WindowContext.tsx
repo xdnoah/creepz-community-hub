@@ -48,6 +48,12 @@ export function WindowProvider({ children }: { children: ReactNode }) {
         return '🦎 LizardGoshi';
       case 'activity':
         return '📊 Activity Monitor';
+      case 'lizardFight':
+        return '⚔️ Lizard Fight';
+      case 'howItWorks':
+        return '📖 How It Works';
+      case 'casino':
+        return '🎰 Casino';
       default:
         return 'Window';
     }

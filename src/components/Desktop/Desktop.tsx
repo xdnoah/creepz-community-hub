@@ -24,6 +24,7 @@ import { LizardGoshiWindow } from '../Windows/LizardGoshiWindow';
 import { LizardFightWindow } from '../Windows/LizardFightWindow';
 import { ActivityWindow } from '../Windows/ActivityWindow';
 import { HowItWorksWindow } from '../Windows/HowItWorksWindow';
+import { CasinoWindow } from '../Windows/CasinoWindow';
 import { NotificationContainer } from '../ui/NotificationToast';
 import { MOBILE_BREAKPOINT } from '../../types';
 
@@ -141,6 +142,11 @@ export function Desktop({ showAuthWindow = false }: DesktopProps) {
             label="How It Works"
             onDoubleClick={() => openWindow('howItWorks')}
           />
+          <DesktopIcon
+            icon="🎰"
+            label="Casino"
+            onDoubleClick={() => openWindow('casino')}
+          />
         </div>
       </div>
 
@@ -177,6 +183,8 @@ export function Desktop({ showAuthWindow = false }: DesktopProps) {
             return <ActivityWindow key={window.id} window={window} />;
           case 'howItWorks':
             return <HowItWorksWindow key={window.id} window={window} />;
+          case 'casino':
+            return <CasinoWindow key={window.id} window={window} />;
           default:
             return null;
         }

@@ -16,7 +16,7 @@ export function StartMenu({ onClose }: StartMenuProps) {
     onClose();
   };
 
-  const handleOpenWindow = (windowType: 'chat' | 'myProfile' | 'onlineUsers' | 'dmList' | 'settings' | 'lizardgoshi' | 'sales' | 'twitter' | 'raid' | 'activity' | 'howItWorks') => {
+  const handleOpenWindow = (windowType: 'chat' | 'myProfile' | 'onlineUsers' | 'dmList' | 'settings' | 'lizardgoshi' | 'sales' | 'twitter' | 'raid' | 'activity' | 'howItWorks' | 'casino') => {
     openWindow(windowType);
     onClose();
   };
@@ -114,6 +114,11 @@ export function StartMenu({ onClose }: StartMenuProps) {
                 icon="❓"
                 label="How It Works"
                 onClick={() => handleOpenWindow('howItWorks')}
+              />
+              <MenuItem
+                icon="🎰"
+                label="Casino"
+                onClick={() => handleOpenWindow('casino')}
               />
               <MenuItem
                 icon="⚙️"
