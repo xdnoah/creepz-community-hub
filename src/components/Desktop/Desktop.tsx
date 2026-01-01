@@ -20,6 +20,7 @@ import { DMWindow } from '../Windows/DMWindow';
 import { SettingsWindow } from '../Windows/SettingsWindow';
 import { RaidWindow } from '../Windows/RaidWindow';
 import { LizardGoshiWindow } from '../Windows/LizardGoshiWindow';
+import { LizardFightWindow } from '../Windows/LizardFightWindow';
 import { ActivityWindow } from '../Windows/ActivityWindow';
 import { NotificationContainer } from '../ui/NotificationToast';
 import { MOBILE_BREAKPOINT } from '../../types';
@@ -153,6 +154,8 @@ export function Desktop({ showAuthWindow = false }: DesktopProps) {
             return <RaidWindow key={window.id} window={window} />;
           case 'lizardgoshi':
             return <LizardGoshiWindow key={window.id} window={window} />;
+          case 'lizardFight':
+            return <LizardFightWindow key={window.id} window={window} />;
           case 'activity':
             return <ActivityWindow key={window.id} window={window} />;
           default:

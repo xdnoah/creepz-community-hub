@@ -1,6 +1,10 @@
+import { useState, useEffect } from 'react';
 import { Window } from './Window';
 import { useProfile } from '../../hooks/useProfile';
 import { formatDate } from '../../lib/utils';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../contexts/AuthContext';
+import { useWindowManager } from '../../contexts/WindowContext';
 import type { WindowState } from '../../types';
 
 interface ProfileWindowProps {
@@ -10,6 +14,35 @@ interface ProfileWindowProps {
 export function ProfileWindow({ window }: ProfileWindowProps) {
   const userId = window.data?.userId;
   const { profile, loading } = useProfile(userId);
+  const { user } = useAuth();
+  const { openWindow } = useWindowManager();
+  const [hasLizard, setHasLizard] = useState(false);
+
+  // Check if this user has a lizard
+  useEffect(() => {
+    async function checkLizard() {
+      if (!userId) return;
+
+      const { data, error } = await supabase
+        .from('lizards')
+        .select('id')
+        .eq('id', userId)
+        .single();
+
+      setHasLizard(!!data && !error);
+    }
+
+    checkLizard();
+  }, [userId]);
+
+  const handleStartFight = () => {
+    if (!user?.id || !userId || user.id === userId) return;
+
+    openWindow('lizardFight', {
+      attacker: user.id,
+      defender: userId,
+    });
+  };
 
   if (loading) {
     return (
@@ -213,6 +246,20 @@ export function ProfileWindow({ window }: ProfileWindowProps) {
             </div>
           )}
         </div>
+
+        {/* Fight Button */}
+        {hasLizard && user && user.id !== userId && (
+          <div className="border-t-2 border-gray-400 p-3 bg-gradient-to-r from-red-50 to-orange-50">
+            <button
+              onClick={handleStartFight}
+              className="w-full bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-all transform hover:scale-105 flex items-center justify-center gap-2"
+            >
+              <span className="text-xl">⚔️</span>
+              <span>Challenge to Lizard Fight!</span>
+              <span className="text-xl">🦎</span>
+            </button>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="border-t-2 border-gray-400 p-2 bg-white">
