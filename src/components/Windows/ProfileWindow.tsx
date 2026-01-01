@@ -11,28 +11,55 @@ interface ProfileWindowProps {
   window: WindowState;
 }
 
+interface FightStats {
+  wins: number;
+  losses: number;
+  total: number;
+  winRate: number;
+}
+
 export function ProfileWindow({ window }: ProfileWindowProps) {
   const userId = window.data?.userId;
   const { profile, loading } = useProfile(userId);
   const { user } = useAuth();
   const { openWindow } = useWindowManager();
   const [hasLizard, setHasLizard] = useState(false);
+  const [fightStats, setFightStats] = useState<FightStats | null>(null);
+  const [loadingStats, setLoadingStats] = useState(true);
 
-  // Check if this user has a lizard
+  // Check if this user has a lizard and fetch fight stats
   useEffect(() => {
-    async function checkLizard() {
+    async function checkLizardAndStats() {
       if (!userId) return;
 
-      const { data, error } = await supabase
+      // Check for lizard
+      const { data: lizardData, error: lizardError } = await supabase
         .from('lizards')
         .select('id')
         .eq('id', userId)
         .single();
 
-      setHasLizard(!!data && !error);
+      setHasLizard(!!lizardData && !lizardError);
+
+      // Fetch fight stats
+      setLoadingStats(true);
+      const { data: fights, error: fightsError } = await supabase
+        .from('fight_history')
+        .select('*')
+        .or(`attacker_id.eq.${userId},defender_id.eq.${userId}`);
+
+      if (!fightsError && fights) {
+        const wins = fights.filter((f) => f.winner_id === userId).length;
+        const losses = fights.filter((f) => f.winner_id !== userId).length;
+        const total = fights.length;
+        const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
+
+        setFightStats({ wins, losses, total, winRate });
+      }
+      setLoadingStats(false);
     }
 
-    checkLizard();
+    checkLizardAndStats();
   }, [userId]);
 
   const handleStartFight = () => {
@@ -109,6 +136,71 @@ export function ProfileWindow({ window }: ProfileWindowProps) {
 
         {/* Content */}
         <div className="flex-1 p-4 space-y-4">
+          {/* Fight Stats Card */}
+          {hasLizard && fightStats && !loadingStats && fightStats.total > 0 && (
+            <div className="bg-gradient-to-br from-red-50 to-orange-50 p-4 rounded-lg shadow-md border-2 border-red-300">
+              <div className="text-lg font-bold mb-3 text-red-700 flex items-center gap-2">
+                <span>⚔️</span> Battle Statistics
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-white p-3 rounded-lg border-2 border-green-400">
+                  <div className="text-2xl font-black text-green-600">{fightStats.wins}</div>
+                  <div className="text-xs font-bold text-gray-600">WINS</div>
+                </div>
+                <div className="bg-white p-3 rounded-lg border-2 border-red-400">
+                  <div className="text-2xl font-black text-red-600">{fightStats.losses}</div>
+                  <div className="text-xs font-bold text-gray-600">LOSSES</div>
+                </div>
+                <div className="bg-white p-3 rounded-lg border-2 border-blue-400">
+                  <div className="text-2xl font-black text-blue-600">{fightStats.total}</div>
+                  <div className="text-xs font-bold text-gray-600">TOTAL FIGHTS</div>
+                </div>
+                <div className="bg-white p-3 rounded-lg border-2 border-purple-400">
+                  <div className="text-2xl font-black text-purple-600">{fightStats.winRate}%</div>
+                  <div className="text-xs font-bold text-gray-600">WIN RATE</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Social Links */}
+          {(profile.twitter_handle || profile.discord_tag) && (
+            <div className="bg-white p-4 rounded-lg shadow-md border-2 border-blue-200">
+              <div className="text-lg font-bold mb-3 text-blue-700 flex items-center gap-2">
+                <span>🔗</span> Social Links
+              </div>
+
+              <div className="space-y-2">
+                {profile.twitter_handle && (
+                  <a
+                    href={`https://twitter.com/${profile.twitter_handle.replace('@', '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 p-2 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
+                  >
+                    <span className="text-lg">🐦</span>
+                    <div className="flex-1">
+                      <div className="text-xs font-bold text-gray-600">Twitter / X</div>
+                      <div className="text-sm font-semibold text-blue-600">@{profile.twitter_handle.replace('@', '')}</div>
+                    </div>
+                    <span className="text-xs text-gray-400">→</span>
+                  </a>
+                )}
+
+                {profile.discord_tag && (
+                  <div className="flex items-center gap-2 p-2 bg-indigo-50 rounded">
+                    <span className="text-lg">💬</span>
+                    <div className="flex-1">
+                      <div className="text-xs font-bold text-gray-600">Discord</div>
+                      <div className="text-sm font-semibold text-indigo-600">{profile.discord_tag}</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* About Section */}
           {hasBasicInfo && (
             <div className="bg-white p-4 rounded-lg shadow-md border-2 border-indigo-200">

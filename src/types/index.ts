@@ -35,6 +35,9 @@ export interface User {
   favorite_food?: string;
   favorite_country?: string;
   favorite_animal?: string;
+  // Social links
+  twitter_handle?: string;
+  discord_tag?: string;
   created_at: string;
   updated_at: string;
   background_color?: string;
@@ -150,6 +153,13 @@ export interface Lizard {
   login_streak_claimed: boolean;
   messages_sent: number;
   total_levels_gained: number;
+  // Customization
+  color: string;
+  pattern: string;
+  eye_style: string;
+  // Ranked PvP
+  rank_points: number;
+  rank_tier: string;
   created_at: string;
   updated_at: string;
 }

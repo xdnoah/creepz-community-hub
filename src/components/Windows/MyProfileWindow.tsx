@@ -23,6 +23,10 @@ export function MyProfileWindow({ window }: MyProfileWindowProps) {
   const [location, setLocation] = useState('');
   const [bio, setBio] = useState('');
 
+  // Social links
+  const [twitterHandle, setTwitterHandle] = useState('');
+  const [discordTag, setDiscordTag] = useState('');
+
   // Favorites fields
   const [favoriteSinger, setFavoriteSinger] = useState('');
   const [favoriteShow, setFavoriteShow] = useState('');
@@ -39,6 +43,8 @@ export function MyProfileWindow({ window }: MyProfileWindowProps) {
       setAge(profile.age?.toString() || '');
       setLocation(profile.location || '');
       setBio(profile.bio || '');
+      setTwitterHandle(profile.twitter_handle || '');
+      setDiscordTag(profile.discord_tag || '');
       setFavoriteSinger(profile.favorite_singer || '');
       setFavoriteShow(profile.favorite_show || '');
       setFavoriteMovie(profile.favorite_movie || '');
@@ -56,6 +62,8 @@ export function MyProfileWindow({ window }: MyProfileWindowProps) {
       age: age ? parseInt(age) : null,
       location: location || null,
       bio: bio || null,
+      twitter_handle: twitterHandle || null,
+      discord_tag: discordTag || null,
       favorite_singer: favoriteSinger || null,
       favorite_show: favoriteShow || null,
       favorite_movie: favoriteMovie || null,
@@ -204,6 +212,35 @@ export function MyProfileWindow({ window }: MyProfileWindowProps) {
                       maxLength={500}
                     />
                     <div className="text-xs text-gray-500 mt-1">{bio.length}/500 characters</div>
+                  </div>
+                </div>
+
+                {/* Social Links Section */}
+                <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
+                  <div className="text-lg font-bold mb-3 text-blue-700">🔗 Social Links</div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-bold text-gray-700 block mb-1">🐦 Twitter / X Handle</label>
+                      <Input95
+                        value={twitterHandle}
+                        onChange={(e) => setTwitterHandle(e.target.value)}
+                        placeholder="username (without @)"
+                        className="w-full"
+                      />
+                      <div className="text-xs text-gray-500 mt-1">Enter your Twitter/X username without the @ symbol</div>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-bold text-gray-700 block mb-1">💬 Discord Tag</label>
+                      <Input95
+                        value={discordTag}
+                        onChange={(e) => setDiscordTag(e.target.value)}
+                        placeholder="username#1234"
+                        className="w-full"
+                      />
+                      <div className="text-xs text-gray-500 mt-1">Enter your Discord username with tag (e.g., user#1234)</div>
+                    </div>
                   </div>
                 </div>
               </div>
