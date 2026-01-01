@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
-import type { ShopItem } from '../types';
+import type { ShopItem, SafeGoldResult } from '../types';
 
 const SHOP_REFRESH_INTERVAL = 2 * 60 * 1000; // 2 minutes in milliseconds
 
@@ -116,13 +116,21 @@ export function useShop(userId: string | undefined) {
       }
 
       // Start transaction: deduct gold, add item to inventory, remove from shop
-      // 1. Deduct gold
-      const { error: goldError } = await supabase
-        .from('lizards')
-        .update({ gold: Math.floor(lizard.gold - shopItem.price) })
-        .eq('id', userId);
+      // 1. Deduct gold using safe function
+      const { data, error: goldError } = await supabase
+        .rpc('safe_deduct_gold', {
+          p_lizard_id: userId,
+          p_amount: shopItem.price,
+          p_reason: 'shop_purchase'
+        })
+        .single();
 
       if (goldError) throw goldError;
+
+      const goldResult = data as SafeGoldResult;
+      if (goldResult && !goldResult.success) {
+        return { error: goldResult.error_message || 'Failed to deduct gold' };
+      }
 
       // 2. Add to user equipment
       const { error: equipError } = await supabase

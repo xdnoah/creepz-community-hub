@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
-import type { Equipment, EquipmentType } from '../types';
+import type { Equipment, EquipmentType, SafeGoldResult } from '../types';
 
 const MAX_INVENTORY_SIZE = 20;
 
@@ -140,22 +140,21 @@ export function useEquipment(userId: string | undefined) {
         return { error: `Not enough gold (need ${cost})` };
       }
 
-      // Deduct gold from user
-      const { data: lizard, error: fetchError } = await supabase
-        .from('lizards')
-        .select('gold')
-        .eq('id', userId)
+      // Deduct gold from user using safe function
+      const { data, error: goldError } = await supabase
+        .rpc('safe_deduct_gold', {
+          p_lizard_id: userId,
+          p_amount: cost,
+          p_reason: 'equipment_upgrade'
+        })
         .single();
 
-      if (fetchError) throw fetchError;
-      if (!lizard) throw new Error('Lizard not found');
+      if (goldError) throw goldError;
 
-      const { error: updateGoldError } = await supabase
-        .from('lizards')
-        .update({ gold: Math.floor(lizard.gold - cost) })
-        .eq('id', userId);
-
-      if (updateGoldError) throw updateGoldError;
+      const goldResult = data as SafeGoldResult;
+      if (goldResult && !goldResult.success) {
+        return { error: goldResult.error_message || 'Failed to deduct gold' };
+      }
 
       // Upgrade the item
       const { error: upgradeError } = await supabase

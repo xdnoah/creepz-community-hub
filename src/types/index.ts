@@ -379,3 +379,10 @@ export const WINDOW_DEFAULTS: Record<WindowType, WindowConfig> = {
 export const MOBILE_BREAKPOINT = 1024;
 
 export const CREEPZ_CONTRACT_ADDRESS = '0xfe8c6d19365453d26af321d0e8c910428c23873f';
+
+// RPC function return types
+export interface SafeGoldResult {
+  success: boolean;
+  new_gold: number;
+  error_message: string;
+}

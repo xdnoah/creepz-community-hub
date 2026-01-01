@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import type { Lizard, StatIncrease, Equipment } from '../types';
+import type { Lizard, StatIncrease, Equipment, SafeGoldResult } from '../types';
 
 // Helper to log activity without circular dependency
 const logLizardActivity = async (userId: string, username: string, activityType: string, metadata?: any) => {
@@ -263,10 +263,25 @@ export function useLizard() {
       // Generate random stat increase
       const statIncrease = getRandomStatIncrease();
 
-      // Build update object
+      // Deduct gold using safe function first
+      const { data: goldData, error: goldError } = await supabase
+        .rpc('safe_deduct_gold', {
+          p_lizard_id: lizard.id,
+          p_amount: cost,
+          p_reason: 'level_up'
+        })
+        .single();
+
+      if (goldError) throw goldError;
+
+      const goldResult = goldData as SafeGoldResult;
+      if (goldResult && !goldResult.success) {
+        return { error: goldResult.error_message || 'Failed to deduct gold' };
+      }
+
+      // Build update object (without gold since we already deducted it)
       const updates: any = {
         level: lizard.level + 1,
-        gold: Math.floor(lizard.gold - cost),
         total_levels_gained: lizard.total_levels_gained + 1,
       };
 
@@ -280,7 +295,7 @@ export function useLizard() {
       // Increase passive income slightly with each level (0.1 gold/s per level)
       updates.passive_income = parseFloat((lizard.passive_income + 0.1).toFixed(2));
 
-      const { data, error: updateError } = await supabase
+      const { data: lizardData, error: updateError } = await supabase
         .from('lizards')
         .update(updates)
         .eq('id', lizard.id)
@@ -289,12 +304,12 @@ export function useLizard() {
 
       if (updateError) throw updateError;
 
-      setLizard(data);
-      updateDerivedStats(data);
+      setLizard(lizardData);
+      updateDerivedStats(lizardData);
 
       // Log level up activity (milestones only: every 5 levels)
-      if (user && data.level % 5 === 0) {
-        await logLizardActivity(user.id, user.username, 'lizard_levelup', { level: data.level });
+      if (user && lizardData.level % 5 === 0) {
+        await logLizardActivity(user.id, user.username, 'lizard_levelup', { level: lizardData.level });
       }
 
       return { statIncrease };
@@ -366,14 +381,29 @@ export function useLizard() {
 
       const reward = calculateDailyReward(newStreak);
 
+      // Add gold using safe function
+      const { data: goldData, error: goldError } = await supabase
+        .rpc('safe_add_gold', {
+          p_lizard_id: lizard.id,
+          p_amount: reward,
+          p_add_to_total: true
+        })
+        .single();
+
+      if (goldError) throw goldError;
+
+      const goldResult = goldData as SafeGoldResult;
+      if (goldResult && !goldResult.success) {
+        return { error: goldResult.error_message || 'Failed to add gold' };
+      }
+
+      // Update streak info
       const { data, error: updateError } = await supabase
         .from('lizards')
         .update({
           last_login: new Date().toISOString(),
           login_streak: newStreak,
           login_streak_claimed: true,
-          gold: Math.floor(lizard.gold + reward),
-          total_gold_earned: Math.floor(lizard.total_gold_earned + reward),
         })
         .eq('id', lizard.id)
         .select()
