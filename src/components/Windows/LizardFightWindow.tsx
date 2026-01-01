@@ -324,8 +324,9 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
     const defenderInterval = (60 * 1000) / (defender.lizard.attack_speed * 3);
 
     // Calculate regeneration per second (3x speed)
-    const attackerRegenPerSec = (attacker.lizard.regeneration / 60) * 3;
-    const defenderRegenPerSec = (defender.lizard.regeneration / 60) * 3;
+    // Regeneration is already per second, so just multiply by 3 for fight speed
+    const attackerRegenPerSec = attacker.lizard.regeneration * 3;
+    const defenderRegenPerSec = defender.lizard.regeneration * 3;
 
     // Initialize attack timers - first attack happens IMMEDIATELY after countdown
     attackerNextAttackRef.current = Date.now();
@@ -401,11 +402,11 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
       const now = Date.now();
 
       // Handle attacker attacks
-      if (now >= attackerNextAttackRef.current) {
+      if (now >= attackerNextAttackRef.current && attacker.currentHp > 0 && defender.currentHp > 0) {
         console.log('[FIGHT] Attacker attacks!', { now, nextAttack: attackerNextAttackRef.current });
 
         setAttacker((prev) => {
-          if (!prev) return prev;
+          if (!prev || prev.currentHp <= 0) return prev;
 
           // Attack animation - lunge forward with visible movement
           const newPos = 30;
@@ -417,7 +418,7 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
         });
 
         setDefender((d) => {
-          if (!d || !attacker) return d;
+          if (!d || !attacker || d.currentHp <= 0) return d;
           const damage = calculateDamage(attacker, d, true);
           const newDefenderHp = Math.max(0, d.currentHp - damage);
 
@@ -455,11 +456,11 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
       });
 
       // Handle defender attacks
-      if (now >= defenderNextAttackRef.current) {
+      if (now >= defenderNextAttackRef.current && defender.currentHp > 0 && attacker.currentHp > 0) {
         console.log('[FIGHT] Defender attacks!', { now, nextAttack: defenderNextAttackRef.current });
 
         setDefender((prev) => {
-          if (!prev) return prev;
+          if (!prev || prev.currentHp <= 0) return prev;
 
           // Attack animation - lunge forward with visible movement
           const newPos = -30;
@@ -471,7 +472,7 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
         });
 
         setAttacker((a) => {
-          if (!a || !defender) return a;
+          if (!a || !defender || a.currentHp <= 0) return a;
           const damage = calculateDamage(defender, a, false);
           const newAttackerHp = Math.max(0, a.currentHp - damage);
 
@@ -749,7 +750,7 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
               <span>🛡️ {Math.floor(attacker.lizard.def)}</span>
               <span>⚡ {Math.floor(attacker.lizard.attack_speed)}/min</span>
               {attacker.lizard.regeneration > 0 && (
-                <span>💚 {attacker.lizard.regeneration.toFixed(1)}/min</span>
+                <span>💚 {attacker.lizard.regeneration.toFixed(1)}/s</span>
               )}
             </div>
           </div>
@@ -775,7 +776,7 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
               <span>🛡️ {Math.floor(defender.lizard.def)}</span>
               <span>⚡ {Math.floor(defender.lizard.attack_speed)}/min</span>
               {defender.lizard.regeneration > 0 && (
-                <span>💚 {defender.lizard.regeneration.toFixed(1)}/min</span>
+                <span>💚 {defender.lizard.regeneration.toFixed(1)}/s</span>
               )}
             </div>
           </div>

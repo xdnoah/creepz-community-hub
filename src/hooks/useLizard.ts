@@ -509,6 +509,44 @@ export function useLizard() {
     return () => clearInterval(interval);
   }, [lizard?.id, goldPerSecond]);
 
+  // Auto-save gold every 15 seconds to prevent rollbacks
+  useEffect(() => {
+    if (!lizard || goldPerSecond === 0) return;
+
+    const saveInterval = setInterval(async () => {
+      try {
+        // Calculate gold earned since last update
+        const now = new Date();
+        const lastUpdate = new Date(lizard.last_gold_update);
+        const secondsElapsed = Math.floor((now.getTime() - lastUpdate.getTime()) / 1000);
+        const goldEarned = Math.floor(goldPerSecond * secondsElapsed);
+
+        if (goldEarned > 0) {
+          // Use safe_add_gold to add the earned gold
+          const { error } = await supabase.rpc('safe_add_gold', {
+            p_lizard_id: lizard.id,
+            p_amount: goldEarned,
+            p_add_to_total: true
+          });
+
+          if (!error) {
+            // Update last_gold_update timestamp
+            await supabase
+              .from('lizards')
+              .update({ last_gold_update: now.toISOString() })
+              .eq('id', lizard.id);
+
+            console.log(`[Gold Auto-Save] Saved ${goldEarned} gold`);
+          }
+        }
+      } catch (err) {
+        console.error('[Gold Auto-Save] Error:', err);
+      }
+    }, 15000); // Every 15 seconds
+
+    return () => clearInterval(saveInterval);
+  }, [lizard?.id, lizard?.last_gold_update, goldPerSecond]);
+
   // Update feed cooldown timer
   useEffect(() => {
     if (feedCooldownRemaining === 0) return;
