@@ -57,7 +57,8 @@ export function LoadingState({ message = 'Loading...', error, onRetry }: Loading
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-4 bg-white">
-        <div className="text-red-600 font-bold mb-2">⚠️ Error</div>
+        <div className="text-4xl mb-3">⚠️</div>
+        <div className="text-red-600 font-bold mb-2">Error</div>
         <div className="text-sm text-gray-700 mb-4 text-center">{error}</div>
         {onRetry && (
           <button
@@ -73,9 +74,20 @@ export function LoadingState({ message = 'Loading...', error, onRetry }: Loading
 
   return (
     <div className="flex flex-col items-center justify-center h-full p-4 bg-white">
-      <div className="text-4xl mb-3 animate-pulse">⌛</div>
-      <div className="text-sm text-gray-600">{message}</div>
-      <div className="text-xs text-gray-500 mt-2">This should only take a moment...</div>
+      <div className="relative mb-4">
+        <div className="text-5xl animate-bounce">
+          🦎
+        </div>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-16 h-16 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </div>
+      <div className="text-sm font-bold text-gray-700 mb-2">{message}</div>
+      <div className="flex gap-2">
+        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+      </div>
     </div>
   );
 }

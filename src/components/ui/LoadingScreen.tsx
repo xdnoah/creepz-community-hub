@@ -89,12 +89,30 @@ export function LoadingScreen() {
     <div className="loading-screen">
       <div className="flex flex-col items-center gap-4 max-w-md">
         {/* Loading Animation */}
-        <div className="text-4xl">⌛</div>
+        <div className="relative mb-4">
+          <div className="text-8xl animate-bounce">
+            🦎
+          </div>
+          {!error && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-28 h-28 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          )}
+        </div>
 
         {/* Main Message */}
-        <div className="text-xl font-bold">
-          {error ? 'Loading Error' : 'Loading Creepz Community Hub...'}
+        <div className="text-2xl font-bold text-white">
+          {error ? '⚠️ Loading Error' : 'Loading Creepz Community Hub...'}
         </div>
+
+        {/* Loading dots */}
+        {!error && (
+          <div className="flex items-center justify-center gap-3">
+            <div className="w-3 h-3 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+            <div className="w-3 h-3 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+            <div className="w-3 h-3 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+          </div>
+        )}
 
         {/* Timer */}
         <div className="text-sm text-gray-400">
