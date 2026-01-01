@@ -49,6 +49,8 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
   const impactIdRef = useRef(0);
   const fightSavedRef = useRef(false);
   const comboTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const attackerNextAttackRef = useRef<number>(0);
+  const defenderNextAttackRef = useRef<number>(0);
 
   // Fetch both lizards with equipment stats (optimized for speed)
   useEffect(() => {
@@ -188,7 +190,8 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
   useEffect(() => {
     if (!fightStarted || !attacker || !defender || winner) return;
 
-    // Calculate attack intervals (attacks per minute to milliseconds, 3x speed for faster fights)
+    // Calculate attack intervals - 60 attacks/min = 1 attack per second
+    // With 3x speed multiplier: 60 * 3 = 180 attacks/min = 3 attacks per second = 333ms interval
     const attackerInterval = (60 * 1000) / (attacker.lizard.attack_speed * 3);
     const defenderInterval = (60 * 1000) / (defender.lizard.attack_speed * 3);
 
@@ -196,8 +199,18 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
     const attackerRegenPerSec = (attacker.lizard.regeneration / 60) * 3;
     const defenderRegenPerSec = (defender.lizard.regeneration / 60) * 3;
 
-    let attackerNextAttack = Date.now() + attackerInterval;
-    let defenderNextAttack = Date.now() + defenderInterval;
+    // Initialize attack timers - first attack happens IMMEDIATELY after countdown
+    attackerNextAttackRef.current = Date.now();
+    defenderNextAttackRef.current = Date.now() + 100; // Slight offset so they don't attack at exact same time
+
+    console.log('[FIGHT] Fight started!', {
+      attackerSpeed: attacker.lizard.attack_speed,
+      defenderSpeed: defender.lizard.attack_speed,
+      attackerInterval,
+      defenderInterval,
+      firstAttackerAttack: attackerNextAttackRef.current,
+      firstDefenderAttack: defenderNextAttackRef.current,
+    });
 
     const calculateDamage = (
       attacker: FighterStats,
@@ -259,125 +272,119 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
     const gameLoop = setInterval(() => {
       const now = Date.now();
 
+      // Handle attacker attacks
+      if (now >= attackerNextAttackRef.current) {
+        console.log('[FIGHT] Attacker attacks!', { now, nextAttack: attackerNextAttackRef.current });
+
+        setAttacker((prev) => {
+          if (!prev) return prev;
+
+          // Attack animation - lunge forward with visible movement
+          const newPos = 30;
+          setTimeout(() => {
+            setAttacker((p) => p ? { ...p, position: 0 } : null);
+          }, 250);
+
+          return { ...prev, position: newPos, charging: false };
+        });
+
+        setDefender((d) => {
+          if (!d || !attacker) return d;
+          const damage = calculateDamage(attacker, d, true);
+          const newDefenderHp = Math.max(0, d.currentHp - damage);
+
+          // Hit shake animation
+          const hitShake = 10;
+          setTimeout(() => {
+            setDefender((p) => p ? { ...p, shake: 0 } : null);
+          }, 200);
+
+          if (newDefenderHp === 0 && !winner) {
+            setTimeout(() => {
+              setWinner(attacker.lizard.name);
+              setWinnerId(attacker.lizard.id);
+            }, 2000);
+          }
+          return { ...d, currentHp: newDefenderHp, shake: hitShake };
+        });
+
+        attackerNextAttackRef.current = now + attackerInterval;
+      }
+
+      // Charge animation shortly before attack
       setAttacker((prev) => {
-        if (!prev || !defender) return prev;
+        if (!prev) return prev;
+        const timeUntilAttack = attackerNextAttackRef.current - now;
+        const shouldCharge = timeUntilAttack > 0 && timeUntilAttack <= 150 && !prev.charging;
 
         let newHp = prev.currentHp;
-        let newPos = prev.position;
-        let newShake = prev.shake;
-        let newCharging = prev.charging;
-
         // Regeneration
         if (attackerRegenPerSec > 0) {
           newHp = Math.min(prev.maxHp, newHp + attackerRegenPerSec / 10);
         }
 
-        // Charge animation 100ms before attack
-        if (now >= attackerNextAttack - 150 && now < attackerNextAttack && !prev.charging) {
-          newCharging = true;
-        }
-
-        // Check if can attack
-        if (now >= attackerNextAttack) {
-          const damage = calculateDamage(prev, defender, true);
-
-          // Attack animation - lunge forward
-          newPos = 20;
-          newCharging = false;
-          setTimeout(() => {
-            setAttacker((p) => p ? { ...p, position: 0 } : null);
-          }, 250);
-
-          // Deal damage to defender
-          setDefender((d) => {
-            if (!d) return d;
-            const newDefenderHp = Math.max(0, d.currentHp - damage);
-
-            // Hit shake animation
-            const hitShake = 8;
-            setTimeout(() => {
-              setDefender((p) => p ? { ...p, shake: 0 } : null);
-            }, 150);
-
-            if (newDefenderHp === 0) {
-              setTimeout(() => {
-                setWinner(prev.lizard.name);
-                setWinnerId(prev.lizard.id);
-              }, 2000);
-            }
-            return { ...d, currentHp: newDefenderHp, shake: hitShake };
-          });
-
-          attackerNextAttack = now + attackerInterval;
-        }
-
-        // Decay shake
-        if (newShake > 0) newShake = Math.max(0, newShake - 1);
-
-        return { ...prev, currentHp: newHp, position: newPos, shake: newShake, charging: newCharging };
+        return shouldCharge ? { ...prev, charging: true, currentHp: newHp } : { ...prev, currentHp: newHp };
       });
 
+      // Handle defender attacks
+      if (now >= defenderNextAttackRef.current) {
+        console.log('[FIGHT] Defender attacks!', { now, nextAttack: defenderNextAttackRef.current });
+
+        setDefender((prev) => {
+          if (!prev) return prev;
+
+          // Attack animation - lunge forward with visible movement
+          const newPos = -30;
+          setTimeout(() => {
+            setDefender((p) => p ? { ...p, position: 0 } : null);
+          }, 250);
+
+          return { ...prev, position: newPos, charging: false };
+        });
+
+        setAttacker((a) => {
+          if (!a || !defender) return a;
+          const damage = calculateDamage(defender, a, false);
+          const newAttackerHp = Math.max(0, a.currentHp - damage);
+
+          // Hit shake animation
+          const hitShake = 10;
+          setTimeout(() => {
+            setAttacker((p) => p ? { ...p, shake: 0 } : null);
+          }, 200);
+
+          if (newAttackerHp === 0 && !winner) {
+            setTimeout(() => {
+              setWinner(defender.lizard.name);
+              setWinnerId(defender.lizard.id);
+            }, 2000);
+          }
+          return { ...a, currentHp: newAttackerHp, shake: hitShake };
+        });
+
+        defenderNextAttackRef.current = now + defenderInterval;
+      }
+
+      // Charge animation and regen for defender
       setDefender((prev) => {
-        if (!prev || !attacker) return prev;
+        if (!prev) return prev;
+        const timeUntilAttack = defenderNextAttackRef.current - now;
+        const shouldCharge = timeUntilAttack > 0 && timeUntilAttack <= 150 && !prev.charging;
 
         let newHp = prev.currentHp;
-        let newPos = prev.position;
-        let newShake = prev.shake;
-        let newCharging = prev.charging;
-
         // Regeneration
         if (defenderRegenPerSec > 0) {
           newHp = Math.min(prev.maxHp, newHp + defenderRegenPerSec / 10);
         }
 
-        // Charge animation 100ms before attack
-        if (now >= defenderNextAttack - 150 && now < defenderNextAttack && !prev.charging) {
-          newCharging = true;
-        }
-
-        // Check if can attack
-        if (now >= defenderNextAttack) {
-          const damage = calculateDamage(prev, attacker, false);
-
-          // Attack animation - lunge forward
-          newPos = -20;
-          newCharging = false;
-          setTimeout(() => {
-            setDefender((p) => p ? { ...p, position: 0 } : null);
-          }, 250);
-
-          // Deal damage to attacker
-          setAttacker((a) => {
-            if (!a) return a;
-            const newAttackerHp = Math.max(0, a.currentHp - damage);
-
-            // Hit shake animation
-            const hitShake = 8;
-            setTimeout(() => {
-              setAttacker((p) => p ? { ...p, shake: 0 } : null);
-            }, 150);
-
-            if (newAttackerHp === 0) {
-              setTimeout(() => {
-                setWinner(prev.lizard.name);
-                setWinnerId(prev.lizard.id);
-              }, 2000);
-            }
-            return { ...a, currentHp: newAttackerHp, shake: hitShake };
-          });
-
-          defenderNextAttack = now + defenderInterval;
-        }
-
-        // Decay shake
-        if (newShake > 0) newShake = Math.max(0, newShake - 1);
-
-        return { ...prev, currentHp: newHp, position: newPos, shake: newShake, charging: newCharging };
+        return shouldCharge ? { ...prev, charging: true, currentHp: newHp } : { ...prev, currentHp: newHp };
       });
     }, 100);
 
     return () => clearInterval(gameLoop);
-  }, [fightStarted, attacker, defender, winner]);
+    // Only depend on fightStarted and winner - attacker/defender are captured from closure
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fightStarted, winner]);
 
   if (loading) {
     return (
@@ -514,7 +521,7 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
               <div
                 className="transform transition-all duration-200 relative"
                 style={{
-                  transform: `translateX(${attacker.position}px) translateY(${Math.sin(attacker.shake) * attacker.shake}px) rotate(${attacker.shake * 2}deg)`,
+                  transform: `translateX(${attacker.position}px) translateY(${Math.sin(attacker.shake) * attacker.shake}px) rotate(${attacker.shake * 2}deg) scale(${attacker.position > 0 ? 1.2 : 1})`,
                   filter: attacker.charging ? 'drop-shadow(0 0 15px rgba(255, 255, 0, 0.9))' : 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))',
                 }}
               >
@@ -543,7 +550,7 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
               <div
                 className="transform transition-all duration-200 relative"
                 style={{
-                  transform: `translateX(${defender.position}px) translateY(${Math.sin(defender.shake) * defender.shake}px) rotate(${-defender.shake * 2}deg) scaleX(-1)`,
+                  transform: `translateX(${defender.position}px) translateY(${Math.sin(defender.shake) * defender.shake}px) rotate(${-defender.shake * 2}deg) scale(${defender.position < 0 ? 1.2 : 1}, ${defender.position < 0 ? 1.2 : 1}) scaleX(-1)`,
                   filter: defender.charging ? 'drop-shadow(0 0 15px rgba(255, 255, 0, 0.9))' : 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))',
                 }}
               >
