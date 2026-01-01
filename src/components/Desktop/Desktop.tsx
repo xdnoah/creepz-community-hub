@@ -85,52 +85,59 @@ export function Desktop({ showAuthWindow = false }: DesktopProps) {
     <MobileProvider isMobile={false}>
       <div className="desktop-background">
       {/* Desktop Icons */}
-      <div className="absolute top-4 left-4 flex flex-col gap-2">
-        <DesktopIcon
-          icon="💬"
-          label="Global Chat"
-          onDoubleClick={() => openWindow('chat')}
-        />
-        <DesktopIcon
-          icon="👤"
-          label="My Profile"
-          onDoubleClick={() => openWindow('myProfile')}
-        />
-        <DesktopIcon
-          icon="👥"
-          label="Who's Online"
-          onDoubleClick={() => openWindow('onlineUsers')}
-        />
-        <DesktopIcon
-          icon="📬"
-          label="Messages"
-          onDoubleClick={() => openWindow('dmList')}
-        />
-        <DesktopIcon
-          icon="⚙️"
-          label="Settings"
-          onDoubleClick={() => openWindow('settings')}
-        />
-        <DesktopIcon
-          icon="🚀"
-          label="RAID"
-          onDoubleClick={() => openWindow('raid')}
-        />
-        <DesktopIcon
-          icon="🦎"
-          label="LizardGoshi"
-          onDoubleClick={() => openWindow('lizardgoshi')}
-        />
-        <DesktopIcon
-          icon="📊"
-          label="Activity"
-          onDoubleClick={() => openWindow('activity')}
-        />
-        <DesktopIcon
-          icon="📖"
-          label="How It Works"
-          onDoubleClick={() => openWindow('howItWorks')}
-        />
+      <div className="absolute top-4 left-4 flex gap-2">
+        {/* Column 1 */}
+        <div className="flex flex-col gap-2">
+          <DesktopIcon
+            icon="💬"
+            label="Global Chat"
+            onDoubleClick={() => openWindow('chat')}
+          />
+          <DesktopIcon
+            icon="👤"
+            label="My Profile"
+            onDoubleClick={() => openWindow('myProfile')}
+          />
+          <DesktopIcon
+            icon="👥"
+            label="Who's Online"
+            onDoubleClick={() => openWindow('onlineUsers')}
+          />
+          <DesktopIcon
+            icon="📬"
+            label="Messages"
+            onDoubleClick={() => openWindow('dmList')}
+          />
+          <DesktopIcon
+            icon="⚙️"
+            label="Settings"
+            onDoubleClick={() => openWindow('settings')}
+          />
+        </div>
+
+        {/* Column 2 */}
+        <div className="flex flex-col gap-2">
+          <DesktopIcon
+            icon="🚀"
+            label="RAID"
+            onDoubleClick={() => openWindow('raid')}
+          />
+          <DesktopIcon
+            icon="🦎"
+            label="LizardGoshi"
+            onDoubleClick={() => openWindow('lizardgoshi')}
+          />
+          <DesktopIcon
+            icon="📊"
+            label="Activity"
+            onDoubleClick={() => openWindow('activity')}
+          />
+          <DesktopIcon
+            icon="📖"
+            label="How It Works"
+            onDoubleClick={() => openWindow('howItWorks')}
+          />
+        </div>
       </div>
 
       {/* Windows */}

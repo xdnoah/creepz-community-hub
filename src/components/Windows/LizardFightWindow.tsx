@@ -58,21 +58,31 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
       if (!attackerId || !defenderId) return;
 
       try {
+        console.log('[FIGHT] Fetching fresh lizard data...', { attackerId, defenderId, timestamp: Date.now() });
+
         // Fetch lizards and equipment in parallel for maximum speed
+        // Force fresh data by adding a timestamp to prevent caching
         const [lizardsResult, equipmentResult] = await Promise.all([
           supabase
             .from('lizards')
             .select('*')
-            .in('id', [attackerId, defenderId]),
+            .in('id', [attackerId, defenderId])
+            .order('updated_at', { ascending: false }), // Ensure latest data
           supabase
             .from('user_equipment')
             .select('*')
             .in('user_id', [attackerId, defenderId])
-            .eq('is_equipped', true),
+            .eq('is_equipped', true)
+            .order('updated_at', { ascending: false }), // Ensure latest equipped items
         ]);
 
         const { data: lizards, error } = lizardsResult;
         const { data: equipment, error: eqError } = equipmentResult;
+
+        console.log('[FIGHT] Fetched data:', {
+          lizards: lizards?.map(l => ({ id: l.id, name: l.name, hp: l.hp, atk: l.atk, def: l.def })),
+          equipmentCount: equipment?.length,
+        });
 
         if (error) throw error;
         if (eqError) throw eqError;
@@ -119,6 +129,25 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
         const defenderLizard = calculateTotalStats(
           lizards.find((l) => l.id === defenderId)!
         );
+
+        console.log('[FIGHT] Final calculated stats:', {
+          attacker: {
+            name: attackerLizard.name,
+            hp: attackerLizard.hp,
+            atk: attackerLizard.atk,
+            def: attackerLizard.def,
+            crit_rate: attackerLizard.crit_rate,
+            attack_speed: attackerLizard.attack_speed,
+          },
+          defender: {
+            name: defenderLizard.name,
+            hp: defenderLizard.hp,
+            atk: defenderLizard.atk,
+            def: defenderLizard.def,
+            crit_rate: defenderLizard.crit_rate,
+            attack_speed: defenderLizard.attack_speed,
+          },
+        });
 
         setAttacker({
           lizard: attackerLizard,

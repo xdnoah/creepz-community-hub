@@ -345,7 +345,7 @@ export const STAT_TYPE_ICONS: Record<EquipmentStatType, string> = {
 };
 
 export const WINDOW_DEFAULTS: Record<WindowType, WindowConfig> = {
-  auth: { width: 380, height: 340, x: 470, y: 220, minWidth: 320, minHeight: 300 },
+  auth: { width: 480, height: 580, x: 400, y: 120, minWidth: 450, minHeight: 550 },
   chat: { width: 500, height: 400, x: 50, y: 50, minWidth: 400, minHeight: 300 },
   myProfile: { width: 380, height: 520, x: 200, y: 60, minWidth: 350, minHeight: 450 },
   profile: { width: 350, height: 380, x: 280, y: 120, minWidth: 320, minHeight: 350 },
