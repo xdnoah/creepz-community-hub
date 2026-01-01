@@ -1,7 +1,15 @@
 -- Dynamic shop size based on lizard level
 -- Migration for v1.8.0
 
--- Update refresh_shop to add 1 item per 5 levels (max 12 items at level 30)
+-- FIRST: Remove old slot constraint and add new one allowing up to 12 slots
+ALTER TABLE shop_inventory
+DROP CONSTRAINT IF EXISTS shop_inventory_slot_check;
+
+ALTER TABLE shop_inventory
+ADD CONSTRAINT shop_inventory_slot_check
+CHECK (slot >= 1 AND slot <= 12);
+
+-- THEN: Update refresh_shop to add 1 item per 5 levels (max 12 items at level 30)
 CREATE OR REPLACE FUNCTION refresh_shop(p_user_id UUID)
 RETURNS VOID AS $$
 DECLARE
