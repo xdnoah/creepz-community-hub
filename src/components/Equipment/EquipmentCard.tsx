@@ -62,7 +62,11 @@ export function EquipmentCard({
             <div className={`font-bold text-xs ${RARITY_COLORS[item.rarity]} truncate`}>
               {EQUIPMENT_TYPE_NAMES[item.equipment_type]}
             </div>
-            <div className="text-[10px] text-gray-400">Lvl {item.level}</div>
+            <div className="flex items-center gap-1">
+              <span className="text-xs font-black text-yellow-400 bg-gray-800 px-1 rounded">
+                LVL {item.level}
+              </span>
+            </div>
           </div>
         </div>
 
