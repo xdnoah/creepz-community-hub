@@ -96,8 +96,11 @@ export function useLizard() {
       };
 
       (data || []).forEach((item: Equipment) => {
+        // Apply upgrade multiplier: +10% per upgrade level
+        const upgradeMultiplier = 1 + (item.upgrade_level * 0.10);
+
         item.stats.forEach((stat) => {
-          stats[stat.type] += stat.value;
+          stats[stat.type] += stat.value * upgradeMultiplier;
         });
       });
 

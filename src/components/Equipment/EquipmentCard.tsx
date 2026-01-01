@@ -66,6 +66,11 @@ export function EquipmentCard({
               <span className="text-xs font-black text-yellow-400 bg-gray-800 px-1 rounded">
                 LVL {item.level}
               </span>
+              {item.upgrade_level > 0 && (
+                <span className="text-xs font-black text-green-400 bg-gray-800 px-1 rounded">
+                  +{item.upgrade_level}
+                </span>
+              )}
             </div>
           </div>
         </div>

@@ -115,6 +115,64 @@ export function useEquipment(userId: string | undefined) {
     }
   };
 
+  // Upgrade an item
+  const upgradeItem = async (
+    itemId: string,
+    userGold: number
+  ): Promise<{ error?: string; cost?: number }> => {
+    if (!userId) return { error: 'No user ID' };
+
+    try {
+      // Find the item
+      const item = equipment.find((eq) => eq.id === itemId);
+      if (!item) return { error: 'Item not found' };
+
+      // Check if max upgrade level reached
+      if (item.upgrade_level >= 10) {
+        return { error: 'Max upgrade level reached (10)' };
+      }
+
+      // Calculate upgrade cost: base_price * 0.5 * (level + 1)
+      const cost = Math.floor(item.purchase_price * 0.5 * (item.upgrade_level + 1));
+
+      // Check if user has enough gold
+      if (userGold < cost) {
+        return { error: `Not enough gold (need ${cost})` };
+      }
+
+      // Deduct gold from user
+      const { data: lizard, error: fetchError } = await supabase
+        .from('lizards')
+        .select('gold')
+        .eq('id', userId)
+        .single();
+
+      if (fetchError) throw fetchError;
+      if (!lizard) throw new Error('Lizard not found');
+
+      const { error: updateGoldError } = await supabase
+        .from('lizards')
+        .update({ gold: Math.floor(lizard.gold - cost) })
+        .eq('id', userId);
+
+      if (updateGoldError) throw updateGoldError;
+
+      // Upgrade the item
+      const { error: upgradeError } = await supabase
+        .from('user_equipment')
+        .update({ upgrade_level: item.upgrade_level + 1 })
+        .eq('id', itemId);
+
+      if (upgradeError) throw upgradeError;
+
+      await fetchEquipment();
+      return { cost };
+    } catch (err: any) {
+      console.error('Error upgrading item:', err);
+      return { error: err.message || 'Failed to upgrade item' };
+    }
+  };
+
   // Delete/sell an item (returns 25% of purchase price)
   const deleteItem = async (item: Equipment): Promise<{ error?: string; goldReturned?: number }> => {
     if (!userId) return { error: 'No user ID' };
@@ -182,8 +240,11 @@ export function useEquipment(userId: string | undefined) {
     };
 
     equipped.forEach((item) => {
+      // Apply upgrade multiplier: +10% per upgrade level
+      const upgradeMultiplier = 1 + (item.upgrade_level * 0.10);
+
       item.stats.forEach((stat) => {
-        stats[stat.type] += stat.value;
+        stats[stat.type] += stat.value * upgradeMultiplier;
       });
     });
 
@@ -233,6 +294,7 @@ export function useEquipment(userId: string | undefined) {
     isSlotOccupied,
     equipItem,
     unequipItem,
+    upgradeItem,
     deleteItem,
     getEquipmentStats,
     refetch: fetchEquipment,

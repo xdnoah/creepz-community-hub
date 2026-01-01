@@ -6,6 +6,7 @@ import { EQUIPMENT_TYPE_NAMES, EQUIPMENT_TYPE_ICONS } from '../../types';
 
 interface EquipmentTabProps {
   userId: string;
+  userGold?: number;
 }
 
 const EQUIPMENT_SLOTS: EquipmentType[] = [
@@ -21,7 +22,7 @@ const EQUIPMENT_SLOTS: EquipmentType[] = [
   'cape',
 ];
 
-export function EquipmentTab({ userId }: EquipmentTabProps) {
+export function EquipmentTab({ userId, userGold = 0 }: EquipmentTabProps) {
   const {
     equipment,
     loading,
@@ -31,6 +32,7 @@ export function EquipmentTab({ userId }: EquipmentTabProps) {
     getInventoryItems,
     equipItem,
     unequipItem,
+    upgradeItem,
     deleteItem,
   } = useEquipment(userId);
 
@@ -64,6 +66,16 @@ export function EquipmentTab({ userId }: EquipmentTabProps) {
     }
   };
 
+  const handleUpgrade = async (itemId: string) => {
+    setActioningItemId(itemId);
+    const result = await upgradeItem(itemId, userGold);
+    setActioningItemId(null);
+
+    if (result.error) {
+      alert(result.error);
+    }
+  };
+
   const handleDelete = async (item: Equipment) => {
     if (deleteConfirm !== item.id) {
       setDeleteConfirm(item.id);
@@ -79,6 +91,10 @@ export function EquipmentTab({ userId }: EquipmentTabProps) {
     if (result.error) {
       alert(result.error);
     }
+  };
+
+  const calculateUpgradeCost = (item: Equipment): number => {
+    return Math.floor(item.purchase_price * 0.5 * (item.upgrade_level + 1));
   };
 
   if (loading && equipment.length === 0) {
@@ -113,14 +129,28 @@ export function EquipmentTab({ userId }: EquipmentTabProps) {
             const item = getEquippedItem(type);
 
             if (item) {
+              const upgradeCost = calculateUpgradeCost(item);
+              const canUpgrade = item.upgrade_level < 10 && userGold >= upgradeCost;
+
               return (
                 <EquipmentCard
                   key={type}
                   item={item}
                   onAction={() => handleUnequip(item.id)}
-                  actionLabel={actioningItemId === item.id ? 'Unequipping...' : 'Unequip'}
+                  actionLabel={actioningItemId === item.id ? 'Working...' : 'Unequip'}
                   actionColor="bg-orange-500 hover:bg-orange-600"
                   actionDisabled={actioningItemId === item.id}
+                  secondaryAction={item.upgrade_level < 10 ? () => handleUpgrade(item.id) : undefined}
+                  secondaryLabel={
+                    item.upgrade_level >= 10
+                      ? 'MAX'
+                      : `⬆ ${upgradeCost}`
+                  }
+                  secondaryColor={
+                    canUpgrade
+                      ? 'bg-green-500 hover:bg-green-600'
+                      : 'bg-gray-500'
+                  }
                 />
               );
             }

@@ -643,7 +643,7 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
 
         {/* Equipment Tab */}
         {activeTab === 'equipment' && user && (
-          <EquipmentTab userId={user.id} />
+          <EquipmentTab userId={user.id} userGold={lizard.gold} />
         )}
 
         {/* Stats Tab */}

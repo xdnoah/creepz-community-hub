@@ -261,6 +261,7 @@ export interface Equipment {
   stats: EquipmentStat[];
   purchase_price: number;
   is_equipped: boolean;
+  upgrade_level: number;
   created_at: string;
   updated_at: string;
 }
@@ -274,6 +275,7 @@ export interface ShopItem {
   level: number;
   stats: EquipmentStat[];
   price: number;
+  upgrade_level: number;
   last_refresh: string;
   created_at: string;
 }
