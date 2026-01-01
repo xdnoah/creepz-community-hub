@@ -7,6 +7,8 @@ import { useLizard, calculateLevelUpCost, calculateDailyReward } from '../../hoo
 import { ShopTab } from '../Equipment/ShopTab';
 import { EquipmentTab } from '../Equipment/EquipmentTab';
 import { StatsTab } from '../Equipment/StatsTab';
+import { FightTab } from '../Fight/FightTab';
+import { CustomizeTab } from '../Customize/CustomizeTab';
 import { ShareLizard } from '../ShareLizard/ShareLizard';
 import { useAuth } from '../../contexts/AuthContext';
 import type { WindowState, StatIncrease } from '../../types';
@@ -36,10 +38,10 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
     levelUp,
     feedLizard,
     claimDailyReward,
-    updateLizardColor,
+    updateLizardCustomization,
   } = useLizard();
 
-  const [activeTab, setActiveTab] = useState<'game' | 'shop' | 'equipment' | 'stats' | 'customize'>('game');
+  const [activeTab, setActiveTab] = useState<'game' | 'shop' | 'equipment' | 'stats' | 'customize' | 'fight'>('game');
   const [showSetup, setShowSetup] = useState(false);
   const [setupName, setSetupName] = useState('');
   const [setupGender, setSetupGender] = useState<'male' | 'female'>('male');
@@ -163,13 +165,6 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
     } else if (result.reward) {
       setGoldAnimation(result.reward);
       setTimeout(() => setGoldAnimation(null), 2000);
-    }
-  };
-
-  const handleColorChange = async (color: string) => {
-    const result = await updateLizardColor(color);
-    if (result.error) {
-      alert(result.error);
     }
   };
 
@@ -346,13 +341,23 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
           </button>
           <button
             onClick={() => setActiveTab('stats')}
-            className={`flex-1 px-3 py-2 font-bold text-xs ${
+            className={`flex-1 px-3 py-2 font-bold text-xs border-r border-gray-400 ${
               activeTab === 'stats'
                 ? 'bg-red-500 text-white'
                 : 'bg-gray-100 hover:bg-gray-200'
             }`}
           >
             📊 Stats
+          </button>
+          <button
+            onClick={() => setActiveTab('fight')}
+            className={`flex-1 px-3 py-2 font-bold text-xs ${
+              activeTab === 'fight'
+                ? 'bg-orange-500 text-white'
+                : 'bg-gray-100 hover:bg-gray-200'
+            }`}
+          >
+            ⚔️ Fight
           </button>
         </div>
 
@@ -683,88 +688,14 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
           <StatsTab userId={user.id} />
         )}
 
+        {/* Fight Tab */}
+        {activeTab === 'fight' && user && (
+          <FightTab currentLizardId={user.id} currentLizardName={lizard.name} />
+        )}
+
         {/* Customize Tab */}
         {activeTab === 'customize' && (
-          <div className="flex-1 overflow-y-auto p-4 bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
-            <div className="max-w-2xl mx-auto space-y-4">
-              {/* Color Selection */}
-              <div className="bg-white p-4 rounded-lg shadow-md border-2 border-pink-300">
-                <div className="text-lg font-bold mb-3 text-pink-700 flex items-center gap-2">
-                  <span>🎨</span> Lizard Color
-                </div>
-
-                <div className="grid grid-cols-3 gap-3 mb-4">
-                  {[
-                    { name: 'Green', value: 'green', bg: 'bg-green-500', border: 'border-green-600' },
-                    { name: 'Red', value: 'red', bg: 'bg-red-500', border: 'border-red-600' },
-                    { name: 'Blue', value: 'blue', bg: 'bg-blue-500', border: 'border-blue-600' },
-                    { name: 'Purple', value: 'purple', bg: 'bg-purple-500', border: 'border-purple-600' },
-                    { name: 'Gold', value: 'gold', bg: 'bg-yellow-500', border: 'border-yellow-600' },
-                    { name: 'Pink', value: 'pink', bg: 'bg-pink-500', border: 'border-pink-600' },
-                    { name: 'Cyan', value: 'cyan', bg: 'bg-cyan-500', border: 'border-cyan-600' },
-                    { name: 'Orange', value: 'orange', bg: 'bg-orange-500', border: 'border-orange-600' },
-                    { name: 'Indigo', value: 'indigo', bg: 'bg-indigo-500', border: 'border-indigo-600' },
-                  ].map((color) => (
-                    <button
-                      key={color.value}
-                      onClick={() => handleColorChange(color.value)}
-                      className={`${color.bg} ${color.border} ${
-                        lizard.color === color.value ? 'ring-4 ring-yellow-400' : ''
-                      } border-4 rounded-lg p-4 font-bold text-white text-sm shadow-lg hover:scale-105 transition-transform flex flex-col items-center gap-2`}
-                    >
-                      <div className="text-3xl">🦎</div>
-                      <div>{color.name}</div>
-                      {lizard.color === color.value && (
-                        <div className="text-xs bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded">
-                          ✓ Active
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="text-xs text-gray-600 text-center bg-pink-50 p-2 rounded">
-                  💡 Choose your lizard's color! More customization options coming soon...
-                </div>
-              </div>
-
-              {/* Preview */}
-              <div className="bg-gradient-to-br from-emerald-100 to-teal-100 p-6 rounded-lg shadow-md border-4 border-emerald-400">
-                <div className="text-center">
-                  <div className="text-sm font-bold text-gray-700 mb-2">Preview</div>
-                  <div
-                    className={`text-9xl inline-block p-4 rounded-full ${
-                      lizard.color === 'green' ? 'bg-green-200' :
-                      lizard.color === 'red' ? 'bg-red-200' :
-                      lizard.color === 'blue' ? 'bg-blue-200' :
-                      lizard.color === 'purple' ? 'bg-purple-200' :
-                      lizard.color === 'gold' ? 'bg-yellow-200' :
-                      lizard.color === 'pink' ? 'bg-pink-200' :
-                      lizard.color === 'cyan' ? 'bg-cyan-200' :
-                      lizard.color === 'orange' ? 'bg-orange-200' :
-                      lizard.color === 'indigo' ? 'bg-indigo-200' :
-                      'bg-green-200'
-                    } shadow-xl border-4 ${
-                      lizard.color === 'green' ? 'border-green-500' :
-                      lizard.color === 'red' ? 'border-red-500' :
-                      lizard.color === 'blue' ? 'border-blue-500' :
-                      lizard.color === 'purple' ? 'border-purple-500' :
-                      lizard.color === 'gold' ? 'border-yellow-500' :
-                      lizard.color === 'pink' ? 'border-pink-500' :
-                      lizard.color === 'cyan' ? 'border-cyan-500' :
-                      lizard.color === 'orange' ? 'border-orange-500' :
-                      lizard.color === 'indigo' ? 'border-indigo-500' :
-                      'border-green-500'
-                    }`}
-                  >
-                    🦎
-                  </div>
-                  <div className="mt-4 text-xl font-bold text-gray-800">{lizard.name}</div>
-                  <div className="text-sm text-gray-600">Level {lizard.level} • {lizardStage}</div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <CustomizeTab lizard={lizard} onUpdateCustomization={updateLizardCustomization} />
         )}
       </div>
 

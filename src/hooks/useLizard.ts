@@ -445,6 +445,29 @@ export function useLizard() {
     }
   };
 
+  const updateLizardCustomization = async (field: string, value: string): Promise<{ error?: string }> => {
+    if (!lizard) return { error: 'No lizard found' };
+
+    try {
+      const { data, error: updateError } = await supabase
+        .from('lizards')
+        .update({ [field]: value })
+        .eq('id', lizard.id)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+
+      setLizard(data);
+      updateDerivedStats(data);
+
+      return {};
+    } catch (err: any) {
+      console.error(`Error updating lizard ${field}:`, err);
+      return { error: err.message || `Failed to update ${field}` };
+    }
+  };
+
   // Add gold from chat message
   const addMessageGold = async (): Promise<void> => {
     if (!lizard) return;
@@ -579,6 +602,7 @@ export function useLizard() {
     feedLizard,
     claimDailyReward,
     updateLizardColor,
+    updateLizardCustomization,
     addMessageGold,
     refreshLizard: fetchLizard,
   };

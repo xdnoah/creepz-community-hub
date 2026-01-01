@@ -157,6 +157,10 @@ export interface Lizard {
   color: string;
   pattern: string;
   eye_style: string;
+  crown: string;
+  hat: string;
+  accessory: string;
+  background_effect: string;
   // Ranked PvP
   rank_points: number;
   rank_tier: string;

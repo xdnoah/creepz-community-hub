@@ -16,7 +16,7 @@ export function StartMenu({ onClose }: StartMenuProps) {
     onClose();
   };
 
-  const handleOpenWindow = (windowType: 'chat' | 'myProfile' | 'onlineUsers' | 'dmList' | 'settings') => {
+  const handleOpenWindow = (windowType: 'chat' | 'myProfile' | 'onlineUsers' | 'dmList' | 'settings' | 'lizardgoshi' | 'sales' | 'twitter' | 'raid' | 'activity' | 'howItWorks') => {
     openWindow(windowType);
     onClose();
   };
@@ -64,6 +64,12 @@ export function StartMenu({ onClose }: StartMenuProps) {
           <div className="flex-1">
             {/* Programs Section */}
             <div className="border-b border-gray-400">
+              <MenuSection label="Apps" />
+              <MenuItem
+                icon="🦎"
+                label="LizardGoshi"
+                onClick={() => handleOpenWindow('lizardgoshi')}
+              />
               <MenuItem
                 icon="💬"
                 label="Global Chat"
@@ -83,6 +89,31 @@ export function StartMenu({ onClose }: StartMenuProps) {
                 icon="👤"
                 label="My Profile"
                 onClick={() => handleOpenWindow('myProfile')}
+              />
+              <MenuItem
+                icon="💰"
+                label="Creepz Sales"
+                onClick={() => handleOpenWindow('sales')}
+              />
+              <MenuItem
+                icon="🐦"
+                label="X - @CreepzNFT"
+                onClick={() => handleOpenWindow('twitter')}
+              />
+              <MenuItem
+                icon="🚀"
+                label="RAID Party"
+                onClick={() => handleOpenWindow('raid')}
+              />
+              <MenuItem
+                icon="📊"
+                label="Activity Monitor"
+                onClick={() => handleOpenWindow('activity')}
+              />
+              <MenuItem
+                icon="❓"
+                label="How It Works"
+                onClick={() => handleOpenWindow('howItWorks')}
               />
               <MenuItem
                 icon="⚙️"
