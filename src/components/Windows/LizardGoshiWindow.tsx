@@ -7,6 +7,7 @@ import { useLizard, calculateLevelUpCost, calculateDailyReward } from '../../hoo
 import { ShopTab } from '../Equipment/ShopTab';
 import { EquipmentTab } from '../Equipment/EquipmentTab';
 import { StatsTab } from '../Equipment/StatsTab';
+import { ShareLizard } from '../ShareLizard/ShareLizard';
 import { useAuth } from '../../contexts/AuthContext';
 import type { WindowState, StatIncrease } from '../../types';
 
@@ -48,6 +49,7 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
   const [showLevelUpEffect, setShowLevelUpEffect] = useState(false);
   const [animatedGold, setAnimatedGold] = useState<number>(0);
   const [goldIncrement, setGoldIncrement] = useState<number | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   useEffect(() => {
     if (!loading && !lizard && !error) {
@@ -637,6 +639,22 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
                   Resets after 36h inactivity
                 </div>
               </div>
+
+              {/* Share Lizard Card */}
+              <div className="border-2 border-cyan-400 bg-gradient-to-br from-cyan-50 to-blue-50 p-2 rounded shadow">
+                <div className="text-xs font-bold mb-2">
+                  📸 SHARE LIZARD
+                </div>
+                <Button95
+                  onClick={() => setShowShareModal(true)}
+                  className="w-full font-bold text-sm bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
+                >
+                  📸 CREATE CARD
+                </Button95>
+                <div className="text-xs text-gray-600 mt-1 text-center">
+                  Generate shareable image
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -749,6 +767,9 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
           </div>
         )}
       </div>
+
+      {/* Share Lizard Modal */}
+      {showShareModal && <ShareLizard lizard={lizard} onClose={() => setShowShareModal(false)} />}
     </Window>
   );
 }
