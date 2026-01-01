@@ -371,6 +371,23 @@ function ChangelogTab() {
       </Section>
 
       <ChangelogEntry
+        version="v1.5.0"
+        date="2025-01-01"
+        title="How It Works Guide & Auth UX Improvements"
+        changes={[
+          'Added comprehensive "How It Works" guide with 5 tabs (Overview, Lizards, Equipment, PvP, Changelog)',
+          'New desktop icon for easy access to game mechanics and documentation',
+          'Detailed stat explanations with formulas and base values',
+          'Equipment rarity breakdown with drop rates and stat counts',
+          'Complete PvP combat guide with damage calculations and pro tips',
+          'Redesigned login/signup window with clear visual distinction',
+          'Added gradient header and prominent tab buttons (LOGIN blue, SIGN UP green)',
+          'Clear contextual messages for new vs returning users',
+          'Created migration safety guidelines to preserve player equipment data',
+        ]}
+      />
+
+      <ChangelogEntry
         version="v1.4.0"
         date="2025-01-01"
         title="Combat Timing Fix & Enhancements"
