@@ -85,12 +85,16 @@ export function WindowProvider({ children }: { children: ReactNode }) {
       }
 
       const config = WINDOW_DEFAULTS[type];
+
+      // LizardGoshi should open maximized by default
+      const shouldMaximize = type === 'lizardgoshi';
+
       const newWindow: WindowState = {
         id: `${type}-${Date.now()}-${Math.random()}`,
         type,
         title: getWindowTitle(type, data),
         isMinimized: false,
-        isMaximized: false,
+        isMaximized: shouldMaximize,
         zIndex: nextZIndex,
         position: { x: config.x, y: config.y },
         size: { width: config.width, height: config.height },
