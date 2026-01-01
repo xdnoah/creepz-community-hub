@@ -205,7 +205,9 @@ export type ActivityType =
   | 'lizard_levelup'
   | 'login_streak_milestone'
   | 'lizard_fed'
-  | 'daily_reward_claimed';
+  | 'daily_reward_claimed'
+  | 'lizard_fight_won'
+  | 'lizard_fight_lost';
 
 export interface ActivityLog {
   id: string;

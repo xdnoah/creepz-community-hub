@@ -1,9 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Window } from './Window';
 import { useActivityLogs } from '../../hooks/useActivityLogs';
 import { useWindowManager } from '../../contexts/WindowContext';
 import { LoadingState } from '../ui/LoadingSkeleton';
-import type { WindowState, ActivityLog } from '../../types';
+import type { WindowState, ActivityLog, ActivityType } from '../../types';
 
 interface ActivityWindowProps {
   window: WindowState;
@@ -13,11 +13,28 @@ export function ActivityWindow({ window }: ActivityWindowProps) {
   const { logs, loading, error } = useActivityLogs();
   const { openWindow } = useWindowManager();
   const logsEndRef = useRef<HTMLDivElement>(null);
+  const [activeFilters, setActiveFilters] = useState<Set<ActivityType>>(new Set());
 
   // Auto-scroll to bottom when new logs arrive
   useEffect(() => {
     logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [logs]);
+
+  const toggleFilter = (type: ActivityType) => {
+    setActiveFilters((prev) => {
+      const newFilters = new Set(prev);
+      if (newFilters.has(type)) {
+        newFilters.delete(type);
+      } else {
+        newFilters.add(type);
+      }
+      return newFilters;
+    });
+  };
+
+  const filteredLogs = activeFilters.size === 0
+    ? logs
+    : logs.filter((log) => activeFilters.has(log.activity_type));
 
   const formatTime = (timestamp: string): string => {
     const date = new Date(timestamp);
@@ -43,6 +60,10 @@ export function ActivityWindow({ window }: ActivityWindowProps) {
         return '🍖';
       case 'daily_reward_claimed':
         return '🎁';
+      case 'lizard_fight_won':
+        return '🏆';
+      case 'lizard_fight_lost':
+        return '💔';
       default:
         return '•';
     }
@@ -83,6 +104,24 @@ export function ActivityWindow({ window }: ActivityWindowProps) {
       case 'daily_reward_claimed':
         const reward = log.metadata?.reward || '?';
         return <>{icon} {username} claimed daily reward (+{reward} gold)</>;
+      case 'lizard_fight_won':
+        const wonOpponent = log.metadata?.opponent || 'an opponent';
+        const wonPoints = log.metadata?.rank_points || 0;
+        return (
+          <>
+            {icon} {username} defeated {wonOpponent} in battle
+            {wonPoints > 0 && <span className="text-yellow-400"> (+{wonPoints} rank points)</span>}
+          </>
+        );
+      case 'lizard_fight_lost':
+        const lostOpponent = log.metadata?.opponent || 'an opponent';
+        const lostPoints = log.metadata?.rank_points || 0;
+        return (
+          <>
+            {icon} {username} was defeated by {lostOpponent}
+            {lostPoints < 0 && <span className="text-red-400"> ({lostPoints} rank points)</span>}
+          </>
+        );
       default:
         return <>{icon} {username} performed an action</>;
     }
@@ -125,6 +164,47 @@ export function ActivityWindow({ window }: ActivityWindowProps) {
             <div className="text-xs mb-3">&gt; Press Ctrl+C to exit (just kidding, this is read-only)</div>
           </div>
 
+          {/* Filters */}
+          <div className="mb-4 p-2 border border-green-500 rounded bg-gray-900 bg-opacity-50">
+            <div className="text-xs text-green-500 mb-2 font-bold">&gt; FILTERS:</div>
+            <div className="flex flex-wrap gap-1">
+              {[
+                { type: 'user_joined' as ActivityType, label: '🆕 Joins', activeClass: 'bg-cyan-500 border-cyan-600' },
+                { type: 'raid_added' as ActivityType, label: '📢 Raids', activeClass: 'bg-blue-500 border-blue-600' },
+                { type: 'lizard_levelup' as ActivityType, label: '⬆️ Levels', activeClass: 'bg-yellow-500 border-yellow-600' },
+                { type: 'lizard_fight_won' as ActivityType, label: '🏆 Wins', activeClass: 'bg-green-500 border-green-600' },
+                { type: 'lizard_fight_lost' as ActivityType, label: '💔 Losses', activeClass: 'bg-red-500 border-red-600' },
+                { type: 'lizard_fed' as ActivityType, label: '🍖 Fed', activeClass: 'bg-orange-500 border-orange-600' },
+                { type: 'daily_reward_claimed' as ActivityType, label: '🎁 Rewards', activeClass: 'bg-pink-500 border-pink-600' },
+              ].map(({ type, label, activeClass }) => (
+                <button
+                  key={type}
+                  onClick={() => toggleFilter(type)}
+                  className={`text-xs px-2 py-1 rounded border transition-all ${
+                    activeFilters.has(type)
+                      ? `${activeClass} text-white font-bold`
+                      : 'bg-gray-800 border-gray-600 text-gray-400 hover:bg-gray-700'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+              {activeFilters.size > 0 && (
+                <button
+                  onClick={() => setActiveFilters(new Set())}
+                  className="text-xs px-2 py-1 rounded border border-red-500 bg-red-900 bg-opacity-30 text-red-400 hover:bg-red-800 hover:bg-opacity-50"
+                >
+                  Clear All
+                </button>
+              )}
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              {activeFilters.size === 0
+                ? `Showing all ${logs.length} events`
+                : `Showing ${filteredLogs.length} of ${logs.length} events`}
+            </div>
+          </div>
+
           {error && (
             <div className="text-red-500 mb-3 border border-red-500 p-2">
               ERROR: {error}
@@ -132,14 +212,14 @@ export function ActivityWindow({ window }: ActivityWindowProps) {
           )}
 
           {/* Activity Logs */}
-          {logs.length === 0 && !loading && (
+          {filteredLogs.length === 0 && !loading && (
             <div className="text-yellow-500 animate-pulse">
-              &gt; No activity detected yet. Waiting for events...
+              &gt; {activeFilters.size > 0 ? 'No events match the selected filters' : 'No activity detected yet. Waiting for events...'}
             </div>
           )}
 
           <div className="space-y-1">
-            {logs.map((log) => (
+            {filteredLogs.map((log) => (
               <div
                 key={log.id}
                 className="hover:bg-gray-900 p-1 rounded transition-colors border-l-2 border-transparent hover:border-green-500"

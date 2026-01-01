@@ -279,6 +279,33 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
           winner_name: winner,
           rank_points_change: rankPointsEarned,
         });
+
+        // Log fight result to activity feed
+        const winnerUsername = attackerWon ? attacker.lizard.name : defender.lizard.name;
+        const loserUsername = attackerWon ? defender.lizard.name : attacker.lizard.name;
+
+        // Log for winner
+        await supabase.from('activity_logs').insert({
+          user_id: winnerId,
+          username: winnerUsername,
+          activity_type: 'lizard_fight_won',
+          metadata: {
+            opponent: loserUsername,
+            rank_points: attackerWon ? rankPointsEarned : 0,
+          },
+        });
+
+        // Log for loser
+        const loserId = attackerWon ? defender.lizard.id : attacker.lizard.id;
+        await supabase.from('activity_logs').insert({
+          user_id: loserId,
+          username: loserUsername,
+          activity_type: 'lizard_fight_lost',
+          metadata: {
+            opponent: winnerUsername,
+            rank_points: !attackerWon ? rankPointsEarned : 0,
+          },
+        });
       } catch (err) {
         console.error('Error saving fight result:', err);
       }
