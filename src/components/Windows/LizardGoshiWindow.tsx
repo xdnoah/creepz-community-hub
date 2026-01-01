@@ -9,6 +9,7 @@ import { EquipmentTab } from '../Equipment/EquipmentTab';
 import { StatsTab } from '../Equipment/StatsTab';
 import { FightTab } from '../Fight/FightTab';
 import { CustomizeTab } from '../Customize/CustomizeTab';
+import { TalentsTab } from '../Talents/TalentsTab';
 import { ShareLizard } from '../ShareLizard/ShareLizard';
 import { useAuth } from '../../contexts/AuthContext';
 import type { WindowState, StatIncrease } from '../../types';
@@ -41,7 +42,7 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
     updateLizardCustomization,
   } = useLizard();
 
-  const [activeTab, setActiveTab] = useState<'game' | 'shop' | 'equipment' | 'stats' | 'customize' | 'fight'>('game');
+  const [activeTab, setActiveTab] = useState<'game' | 'shop' | 'equipment' | 'stats' | 'customize' | 'fight' | 'talents'>('game');
   const [showSetup, setShowSetup] = useState(false);
   const [setupName, setSetupName] = useState('');
   const [setupGender, setSetupGender] = useState<'male' | 'female'>('male');
@@ -351,13 +352,23 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
           </button>
           <button
             onClick={() => setActiveTab('fight')}
-            className={`flex-1 px-3 py-2 font-bold text-xs ${
+            className={`flex-1 px-3 py-2 font-bold text-xs border-r border-gray-400 ${
               activeTab === 'fight'
                 ? 'bg-orange-500 text-white'
                 : 'bg-gray-100 hover:bg-gray-200'
             }`}
           >
             ⚔️ Fight
+          </button>
+          <button
+            onClick={() => setActiveTab('talents')}
+            className={`flex-1 px-3 py-2 font-bold text-xs ${
+              activeTab === 'talents'
+                ? 'bg-indigo-500 text-white'
+                : 'bg-gray-100 hover:bg-gray-200'
+            }`}
+          >
+            🌳 Talents
           </button>
         </div>
 
@@ -696,6 +707,11 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
         {/* Customize Tab */}
         {activeTab === 'customize' && (
           <CustomizeTab lizard={lizard} onUpdateCustomization={updateLizardCustomization} />
+        )}
+
+        {/* Talents Tab */}
+        {activeTab === 'talents' && (
+          <TalentsTab />
         )}
       </div>
 
