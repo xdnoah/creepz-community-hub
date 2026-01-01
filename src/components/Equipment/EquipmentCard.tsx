@@ -7,6 +7,7 @@ import {
   STAT_TYPE_NAMES,
   STAT_TYPE_ICONS,
 } from '../../types';
+import { ComparisonTooltip } from './ComparisonTooltip';
 
 interface EquipmentCardProps {
   item: Equipment | ShopItem;
@@ -18,6 +19,7 @@ interface EquipmentCardProps {
   secondaryLabel?: string;
   secondaryColor?: string;
   showPrice?: boolean;
+  comparedToItem?: Equipment | null;
 }
 
 export function EquipmentCard({
@@ -30,6 +32,7 @@ export function EquipmentCard({
   secondaryLabel,
   secondaryColor = 'bg-gray-500 hover:bg-gray-600',
   showPrice = false,
+  comparedToItem,
 }: EquipmentCardProps) {
   const formatStatValue = (type: string, value: number): string => {
     if (type === 'crit_rate' || type === 'crit_damage') {
@@ -46,7 +49,7 @@ export function EquipmentCard({
 
   const price = 'price' in item ? item.price : item.purchase_price;
 
-  return (
+  const cardContent = (
     <div
       className={`relative bg-gradient-to-b from-gray-900 to-black rounded border-2 ${RARITY_BORDER_COLORS[item.rarity]} shadow-lg overflow-hidden hover:shadow-xl transition-all hover:scale-105`}
     >
@@ -121,4 +124,14 @@ export function EquipmentCard({
       </div>
     </div>
   );
+
+  if (comparedToItem) {
+    return (
+      <ComparisonTooltip item={item} equippedItem={comparedToItem}>
+        {cardContent}
+      </ComparisonTooltip>
+    );
+  }
+
+  return cardContent;
 }

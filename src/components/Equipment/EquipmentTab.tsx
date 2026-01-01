@@ -186,23 +186,30 @@ export function EquipmentTab({ userId, userGold = 0 }: EquipmentTabProps) {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
-            {inventoryItems.map((item) => (
-              <EquipmentCard
-                key={item.id}
-                item={item}
-                onAction={() => handleEquip(item.id)}
-                actionLabel={actioningItemId === item.id ? 'Equipping...' : 'Equip'}
-                actionColor="bg-blue-500 hover:bg-blue-600"
-                actionDisabled={actioningItemId === item.id}
-                secondaryAction={() => handleDelete(item)}
-                secondaryLabel={deleteConfirm === item.id ? 'Confirm?' : 'Sell (25%)'}
-                secondaryColor={
-                  deleteConfirm === item.id
-                    ? 'bg-red-600 hover:bg-red-700'
-                    : 'bg-gray-500 hover:bg-gray-600'
-                }
-              />
-            ))}
+            {inventoryItems.map((item) => {
+              const equippedItem = equippedItems.find(
+                (eq) => eq.equipment_type === item.equipment_type
+              ) || null;
+
+              return (
+                <EquipmentCard
+                  key={item.id}
+                  item={item}
+                  comparedToItem={equippedItem}
+                  onAction={() => handleEquip(item.id)}
+                  actionLabel={actioningItemId === item.id ? 'Equipping...' : 'Equip'}
+                  actionColor="bg-blue-500 hover:bg-blue-600"
+                  actionDisabled={actioningItemId === item.id}
+                  secondaryAction={() => handleDelete(item)}
+                  secondaryLabel={deleteConfirm === item.id ? 'Confirm?' : 'Sell (25%)'}
+                  secondaryColor={
+                    deleteConfirm === item.id
+                      ? 'bg-red-600 hover:bg-red-700'
+                      : 'bg-gray-500 hover:bg-gray-600'
+                  }
+                />
+              );
+            })}
           </div>
         )}
       </div>

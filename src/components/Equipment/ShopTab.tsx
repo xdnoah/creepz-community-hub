@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useShop } from '../../hooks/useShop';
+import { useEquipment } from '../../hooks/useEquipment';
 import { EquipmentCard } from './EquipmentCard';
 
 interface ShopTabProps {
@@ -9,7 +10,10 @@ interface ShopTabProps {
 
 export function ShopTab({ userId, userGold }: ShopTabProps) {
   const { shopItems, loading, canRefresh, timeUntilRefresh, refreshShop, buyItem } = useShop(userId);
+  const { getEquippedItems } = useEquipment(userId);
   const [buyingItemId, setBuyingItemId] = useState<string | null>(null);
+
+  const equippedItems = getEquippedItems();
 
   const formatTime = (ms: number): string => {
     const totalSeconds = Math.floor(ms / 1000);
@@ -94,23 +98,30 @@ export function ShopTab({ userId, userGold }: ShopTabProps) {
       {/* Shop Grid */}
       <div className="flex-1 overflow-y-auto">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
-          {shopItems.map((item) => (
-            <EquipmentCard
-              key={item.id}
-              item={item}
-              showPrice
-              onAction={() => handleBuy(item.id, item.price)}
-              actionLabel={buyingItemId === item.id ? 'Buying...' : 'Buy'}
-              actionDisabled={
-                userGold < item.price || buyingItemId === item.id
-              }
-              actionColor={
-                userGold < item.price
-                  ? 'bg-gray-400'
-                  : 'bg-green-500 hover:bg-green-600'
-              }
-            />
-          ))}
+          {shopItems.map((item) => {
+            const equippedItem = equippedItems.find(
+              (eq) => eq.equipment_type === item.equipment_type
+            ) || null;
+
+            return (
+              <EquipmentCard
+                key={item.id}
+                item={item}
+                showPrice
+                comparedToItem={equippedItem}
+                onAction={() => handleBuy(item.id, item.price)}
+                actionLabel={buyingItemId === item.id ? 'Buying...' : 'Buy'}
+                actionDisabled={
+                  userGold < item.price || buyingItemId === item.id
+                }
+                actionColor={
+                  userGold < item.price
+                    ? 'bg-gray-400'
+                    : 'bg-green-500 hover:bg-green-600'
+                }
+              />
+            );
+          })}
 
           {/* Empty slots */}
           {Array.from({ length: Math.max(0, 6 - shopItems.length) }).map((_, i) => (
