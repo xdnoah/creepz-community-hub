@@ -390,8 +390,22 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
             <div className="flex items-center gap-2">
               <div className="text-3xl">{lizard.gender === 'male' ? '♂️' : '♀️'}</div>
               <div>
-                <div className="font-bold text-lg leading-tight">{lizard.name}</div>
-                <div className="text-xs opacity-90">Lv.{lizard.level} {lizardStage} • ⚡{lizardPower.toLocaleString()} Power</div>
+                <div className="font-bold text-lg leading-tight flex items-center gap-2">
+                  {lizard.name}
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-black ${
+                    lizard.rank_tier === 'legend' ? 'bg-purple-600' :
+                    lizard.rank_tier === 'diamond' ? 'bg-cyan-500' :
+                    lizard.rank_tier === 'platinum' ? 'bg-gray-300 text-gray-800' :
+                    lizard.rank_tier === 'gold' ? 'bg-yellow-500 text-gray-900' :
+                    lizard.rank_tier === 'silver' ? 'bg-gray-400 text-gray-900' :
+                    'bg-orange-700'
+                  }`}>
+                    {lizard.rank_tier.toUpperCase()}
+                  </span>
+                </div>
+                <div className="text-xs opacity-90">
+                  Lv.{lizard.level} {lizardStage} • ⚡{lizardPower.toLocaleString()} • 🏆{lizard.rank_points}
+                </div>
               </div>
             </div>
             <div className="text-right relative">

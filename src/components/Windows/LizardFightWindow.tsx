@@ -45,6 +45,8 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
   const [impactEffects, setImpactEffects] = useState<ImpactEffect[]>([]);
   const [screenShake, setScreenShake] = useState(0);
   const [comboCount, setComboCount] = useState(0);
+  const [rankPointsChange, setRankPointsChange] = useState<number | null>(null);
+  const [canEarnRankPoints, setCanEarnRankPoints] = useState(false);
   const damageIdRef = useRef(0);
   const impactIdRef = useRef(0);
   const fightSavedRef = useRef(false);
@@ -167,6 +169,24 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
           charging: false,
         });
 
+        // Check if attacker can earn rank points (hourly cooldown)
+        const { data: cooldown } = await supabase
+          .from('pvp_fight_cooldowns')
+          .select('last_ranked_fight')
+          .eq('attacker_id', attackerId)
+          .eq('defender_id', defenderId)
+          .single();
+
+        if (cooldown) {
+          const lastFight = new Date(cooldown.last_ranked_fight).getTime();
+          const now = Date.now();
+          const hourInMs = 60 * 60 * 1000;
+          setCanEarnRankPoints(now - lastFight >= hourInMs);
+        } else {
+          // No previous fight, can earn points
+          setCanEarnRankPoints(true);
+        }
+
         setLoading(false);
 
         // Start countdown immediately (3-2-1-FIGHT!)
@@ -199,6 +219,57 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
       fightSavedRef.current = true;
 
       try {
+        const attackerWon = winnerId === attacker.lizard.id;
+        let rankPointsEarned = 0;
+
+        // Calculate rank points if eligible
+        if (canEarnRankPoints) {
+          // Base points: 10, +2 per level difference
+          const levelDiff = defender.lizard.level - attacker.lizard.level;
+          const basePoints = Math.max(3, 10 + levelDiff * 2);
+
+          if (attackerWon) {
+            rankPointsEarned = basePoints;
+          } else {
+            // Attacker loses half the points they would have won
+            rankPointsEarned = -Math.floor(basePoints / 2);
+          }
+
+          // Update attacker's rank points
+          const newRankPoints = Math.max(0, attacker.lizard.rank_points + rankPointsEarned);
+
+          // Determine new rank tier
+          let newRankTier = 'bronze';
+          if (newRankPoints >= 2000) newRankTier = 'legend';
+          else if (newRankPoints >= 1500) newRankTier = 'diamond';
+          else if (newRankPoints >= 1000) newRankTier = 'platinum';
+          else if (newRankPoints >= 700) newRankTier = 'gold';
+          else if (newRankPoints >= 400) newRankTier = 'silver';
+
+          // Update attacker's lizard
+          await supabase
+            .from('lizards')
+            .update({
+              rank_points: newRankPoints,
+              rank_tier: newRankTier,
+            })
+            .eq('id', attacker.lizard.id);
+
+          // Update or insert cooldown record
+          await supabase
+            .from('pvp_fight_cooldowns')
+            .upsert({
+              attacker_id: attacker.lizard.id,
+              defender_id: defender.lizard.id,
+              last_ranked_fight: new Date().toISOString(),
+            }, {
+              onConflict: 'attacker_id,defender_id',
+            });
+
+          setRankPointsChange(rankPointsEarned);
+        }
+
+        // Save fight to history
         await supabase.from('fight_history').insert({
           attacker_id: attacker.lizard.id,
           attacker_name: attacker.lizard.name,
@@ -206,6 +277,7 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
           defender_name: defender.lizard.name,
           winner_id: winnerId,
           winner_name: winner,
+          rank_points_change: rankPointsEarned,
         });
       } catch (err) {
         console.error('Error saving fight result:', err);
@@ -213,7 +285,7 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
     }
 
     saveFightResult();
-  }, [winner, winnerId, attacker, defender]);
+  }, [winner, winnerId, attacker, defender, canEarnRankPoints]);
 
   // Fight logic
   useEffect(() => {
@@ -600,9 +672,28 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
                 <div className="text-4xl font-bold text-gray-900 text-center mb-2">
                   🏆 WINNER 🏆
                 </div>
-                <div className="text-3xl font-bold text-red-700 text-center">
+                <div className="text-3xl font-bold text-red-700 text-center mb-4">
                   {winner}
                 </div>
+                {/* Rank Points Display */}
+                {rankPointsChange !== null && (
+                  <div className="mt-4 bg-white bg-opacity-90 rounded-lg p-3 border-2 border-gray-800">
+                    <div className="text-sm font-bold text-gray-700 text-center mb-1">
+                      Ranked Points
+                    </div>
+                    <div className={`text-2xl font-black text-center ${
+                      rankPointsChange > 0 ? 'text-green-600' : rankPointsChange < 0 ? 'text-red-600' : 'text-gray-600'
+                    }`}>
+                      {rankPointsChange > 0 && '+'}
+                      {rankPointsChange}
+                    </div>
+                    {!canEarnRankPoints && rankPointsChange === 0 && (
+                      <div className="text-xs text-gray-600 text-center mt-1">
+                        Cooldown active (1hr)
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )}
