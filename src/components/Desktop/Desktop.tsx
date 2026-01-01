@@ -22,6 +22,7 @@ import { RaidWindow } from '../Windows/RaidWindow';
 import { LizardGoshiWindow } from '../Windows/LizardGoshiWindow';
 import { LizardFightWindow } from '../Windows/LizardFightWindow';
 import { ActivityWindow } from '../Windows/ActivityWindow';
+import { HowItWorksWindow } from '../Windows/HowItWorksWindow';
 import { NotificationContainer } from '../ui/NotificationToast';
 import { MOBILE_BREAKPOINT } from '../../types';
 
@@ -125,6 +126,11 @@ export function Desktop({ showAuthWindow = false }: DesktopProps) {
           label="Activity"
           onDoubleClick={() => openWindow('activity')}
         />
+        <DesktopIcon
+          icon="📖"
+          label="How It Works"
+          onDoubleClick={() => openWindow('howItWorks')}
+        />
       </div>
 
       {/* Windows */}
@@ -158,6 +164,8 @@ export function Desktop({ showAuthWindow = false }: DesktopProps) {
             return <LizardFightWindow key={window.id} window={window} />;
           case 'activity':
             return <ActivityWindow key={window.id} window={window} />;
+          case 'howItWorks':
+            return <HowItWorksWindow key={window.id} window={window} />;
           default:
             return null;
         }

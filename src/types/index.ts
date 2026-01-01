@@ -1,4 +1,4 @@
-export type WindowType = 'auth' | 'chat' | 'myProfile' | 'profile' | 'sales' | 'twitter' | 'onlineUsers' | 'dmList' | 'dm' | 'settings' | 'raid' | 'lizardgoshi' | 'activity' | 'lizardFight';
+export type WindowType = 'auth' | 'chat' | 'myProfile' | 'profile' | 'sales' | 'twitter' | 'onlineUsers' | 'dmList' | 'dm' | 'settings' | 'raid' | 'lizardgoshi' | 'activity' | 'lizardFight' | 'howItWorks';
 
 export interface WindowConfig {
   width: number;
@@ -359,6 +359,7 @@ export const WINDOW_DEFAULTS: Record<WindowType, WindowConfig> = {
   lizardgoshi: { width: 700, height: 650, x: 300, y: 30, minWidth: 650, minHeight: 600 },
   activity: { width: 500, height: 450, x: 380, y: 90, minWidth: 450, minHeight: 400 },
   lizardFight: { width: 650, height: 500, x: 300, y: 150, minWidth: 600, minHeight: 450 },
+  howItWorks: { width: 800, height: 600, x: 220, y: 50, minWidth: 700, minHeight: 550 },
 };
 
 export const MOBILE_BREAKPOINT = 1024;

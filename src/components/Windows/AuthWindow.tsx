@@ -102,11 +102,20 @@ export function AuthWindow({ window }: AuthWindowProps) {
 
   return (
     <Window window={window} canClose={false}>
-      <div className="flex flex-col gap-4 p-4">
+      <div className="flex flex-col h-full">
+        {/* Header with Welcome Message */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 text-white text-center">
+          <h1 className="text-2xl font-bold mb-1">🦎 Welcome to Creepz Hub</h1>
+          <p className="text-sm opacity-90">
+            {mode === 'login'
+              ? 'Log in to access your account'
+              : 'Create a new account to get started'}
+          </p>
+        </div>
+
         {/* Tab Toggle */}
-        <div className="flex gap-2">
-          <Button95
-            variant={mode === 'login' ? 'primary' : 'default'}
+        <div className="flex border-b-2 border-gray-300">
+          <button
             onClick={() => {
               setMode('login');
               setError('');
@@ -114,12 +123,19 @@ export function AuthWindow({ window }: AuthWindowProps) {
               setPassword('');
               setConfirmPassword('');
             }}
-            className="flex-1"
+            className={`flex-1 py-3 px-4 font-bold transition-colors ${
+              mode === 'login'
+                ? 'bg-blue-500 text-white border-b-4 border-blue-700'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
           >
-            Login
-          </Button95>
-          <Button95
-            variant={mode === 'register' ? 'primary' : 'default'}
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-xl">🔐</span>
+              <span>LOGIN</span>
+              <span className="text-xs opacity-80">Already have an account</span>
+            </div>
+          </button>
+          <button
             onClick={() => {
               setMode('register');
               setError('');
@@ -127,13 +143,38 @@ export function AuthWindow({ window }: AuthWindowProps) {
               setPassword('');
               setConfirmPassword('');
             }}
-            className="flex-1"
+            className={`flex-1 py-3 px-4 font-bold transition-colors ${
+              mode === 'register'
+                ? 'bg-green-500 text-white border-b-4 border-green-700'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
           >
-            Register
-          </Button95>
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-xl">✨</span>
+              <span>SIGN UP</span>
+              <span className="text-xs opacity-80">New user? Start here</span>
+            </div>
+          </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        <div className="flex-1 p-4 overflow-y-auto">
+          {mode === 'register' && (
+            <div className="mb-4 bg-green-50 border-2 border-green-500 rounded p-3">
+              <p className="text-sm text-green-800">
+                <strong>New to Creepz Hub?</strong> Create an account to chat, collect lizards, and battle players!
+              </p>
+            </div>
+          )}
+
+          {mode === 'login' && (
+            <div className="mb-4 bg-blue-50 border-2 border-blue-500 rounded p-3">
+              <p className="text-sm text-blue-800">
+                <strong>Welcome back!</strong> Enter your credentials to continue.
+              </p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           {/* Username */}
           <div className="field-row-stacked">
             <label htmlFor="username" className="text-sm font-bold">
@@ -209,9 +250,10 @@ export function AuthWindow({ window }: AuthWindowProps) {
 
           {/* Submit Button */}
           <Button95 type="submit" disabled={!isFormValid()} variant="primary" className="mt-2">
-            {mode === 'login' ? 'Login' : 'Register'}
+            {mode === 'login' ? 'Login' : 'Create Account'}
           </Button95>
         </form>
+        </div>
       </div>
     </Window>
   );
