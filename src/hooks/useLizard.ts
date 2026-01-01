@@ -388,6 +388,30 @@ export function useLizard() {
     }
   };
 
+  // Update lizard customization
+  const updateLizardColor = async (color: string): Promise<{ error?: string }> => {
+    if (!lizard) return { error: 'No lizard found' };
+
+    try {
+      const { data, error: updateError } = await supabase
+        .from('lizards')
+        .update({ color })
+        .eq('id', lizard.id)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+
+      setLizard(data);
+      updateDerivedStats(data);
+
+      return {};
+    } catch (err: any) {
+      console.error('Error updating lizard color:', err);
+      return { error: err.message || 'Failed to update color' };
+    }
+  };
+
   // Add gold from chat message
   const addMessageGold = async (): Promise<void> => {
     if (!lizard) return;
@@ -521,6 +545,7 @@ export function useLizard() {
     levelUp,
     feedLizard,
     claimDailyReward,
+    updateLizardColor,
     addMessageGold,
     refreshLizard: fetchLizard,
   };
