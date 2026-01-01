@@ -93,7 +93,7 @@ export function ShopTab({ userId, userGold }: ShopTabProps) {
 
       {/* Shop Grid */}
       <div className="flex-1 overflow-y-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
           {shopItems.map((item) => (
             <EquipmentCard
               key={item.id}
@@ -116,11 +116,11 @@ export function ShopTab({ userId, userGold }: ShopTabProps) {
           {Array.from({ length: Math.max(0, 6 - shopItems.length) }).map((_, i) => (
             <div
               key={`empty-${i}`}
-              className="bg-gray-100 border-4 border-dashed border-gray-300 rounded-lg flex items-center justify-center h-48"
+              className="bg-gradient-to-b from-gray-800 to-gray-900 border-2 border-dashed border-gray-600 rounded flex items-center justify-center min-h-[120px]"
             >
-              <div className="text-gray-400 text-center">
-                <div className="text-4xl mb-2">📦</div>
-                <div className="text-sm">Empty Slot</div>
+              <div className="text-gray-600 text-center">
+                <div className="text-3xl mb-1 opacity-30">📦</div>
+                <div className="text-[10px]">Empty</div>
               </div>
             </div>
           ))}

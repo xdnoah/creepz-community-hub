@@ -356,7 +356,7 @@ export const WINDOW_DEFAULTS: Record<WindowType, WindowConfig> = {
   dm: { width: 480, height: 420, x: 300, y: 120, minWidth: 400, minHeight: 350 },
   settings: { width: 520, height: 580, x: 250, y: 80, minWidth: 480, minHeight: 500 },
   raid: { width: 450, height: 500, x: 420, y: 70, minWidth: 400, minHeight: 450 },
-  lizardgoshi: { width: 550, height: 600, x: 350, y: 50, minWidth: 500, minHeight: 550 },
+  lizardgoshi: { width: 700, height: 650, x: 300, y: 30, minWidth: 650, minHeight: 600 },
   activity: { width: 500, height: 450, x: 380, y: 90, minWidth: 450, minHeight: 400 },
   lizardFight: { width: 650, height: 500, x: 300, y: 150, minWidth: 600, minHeight: 450 },
 };

@@ -6,6 +6,7 @@ import { LoadingState } from '../ui/LoadingSkeleton';
 import { useLizard, calculateLevelUpCost, calculateDailyReward } from '../../hooks/useLizard';
 import { ShopTab } from '../Equipment/ShopTab';
 import { EquipmentTab } from '../Equipment/EquipmentTab';
+import { StatsTab } from '../Equipment/StatsTab';
 import { useAuth } from '../../contexts/AuthContext';
 import type { WindowState, StatIncrease } from '../../types';
 
@@ -36,7 +37,7 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
     claimDailyReward,
   } = useLizard();
 
-  const [activeTab, setActiveTab] = useState<'game' | 'shop' | 'equipment'>('game');
+  const [activeTab, setActiveTab] = useState<'game' | 'shop' | 'equipment' | 'stats'>('game');
   const [showSetup, setShowSetup] = useState(false);
   const [setupName, setSetupName] = useState('');
   const [setupGender, setSetupGender] = useState<'male' | 'female'>('male');
@@ -270,13 +271,23 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
           </button>
           <button
             onClick={() => setActiveTab('equipment')}
-            className={`flex-1 px-4 py-2 font-bold text-sm ${
+            className={`flex-1 px-4 py-2 font-bold text-sm border-r border-gray-400 ${
               activeTab === 'equipment'
                 ? 'bg-blue-500 text-white'
                 : 'bg-gray-100 hover:bg-gray-200'
             }`}
           >
             ⚔️ Equipment
+          </button>
+          <button
+            onClick={() => setActiveTab('stats')}
+            className={`flex-1 px-4 py-2 font-bold text-sm ${
+              activeTab === 'stats'
+                ? 'bg-red-500 text-white'
+                : 'bg-gray-100 hover:bg-gray-200'
+            }`}
+          >
+            📊 Stats
           </button>
         </div>
 
@@ -552,6 +563,11 @@ export function LizardGoshiWindow({ window }: LizardGoshiWindowProps) {
         {/* Equipment Tab */}
         {activeTab === 'equipment' && user && (
           <EquipmentTab userId={user.id} />
+        )}
+
+        {/* Stats Tab */}
+        {activeTab === 'stats' && user && (
+          <StatsTab userId={user.id} />
         )}
       </div>
     </Window>

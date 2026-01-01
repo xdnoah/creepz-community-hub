@@ -31,8 +31,10 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
   const [loading, setLoading] = useState(true);
   const [fightStarted, setFightStarted] = useState(false);
   const [winner, setWinner] = useState<string | null>(null);
+  const [winnerId, setWinnerId] = useState<string | null>(null);
   const [damageNumbers, setDamageNumbers] = useState<DamageNumber[]>([]);
   const damageIdRef = useRef(0);
+  const fightSavedRef = useRef(false);
 
   // Fetch both lizards with equipment stats
   useEffect(() => {
@@ -131,17 +133,41 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
     }
   }, [attacker, defender, fightStarted]);
 
+  // Save fight result to database
+  useEffect(() => {
+    async function saveFightResult() {
+      if (!winner || !winnerId || !attacker || !defender || fightSavedRef.current) return;
+
+      fightSavedRef.current = true;
+
+      try {
+        await supabase.from('fight_history').insert({
+          attacker_id: attacker.lizard.id,
+          attacker_name: attacker.lizard.name,
+          defender_id: defender.lizard.id,
+          defender_name: defender.lizard.name,
+          winner_id: winnerId,
+          winner_name: winner,
+        });
+      } catch (err) {
+        console.error('Error saving fight result:', err);
+      }
+    }
+
+    saveFightResult();
+  }, [winner, winnerId, attacker, defender]);
+
   // Fight logic
   useEffect(() => {
     if (!fightStarted || !attacker || !defender || winner) return;
 
-    // Calculate attack intervals (attacks per minute to milliseconds)
-    const attackerInterval = (60 * 1000) / attacker.lizard.attack_speed;
-    const defenderInterval = (60 * 1000) / defender.lizard.attack_speed;
+    // Calculate attack intervals (attacks per minute to milliseconds, 3x speed for faster fights)
+    const attackerInterval = (60 * 1000) / (attacker.lizard.attack_speed * 3);
+    const defenderInterval = (60 * 1000) / (defender.lizard.attack_speed * 3);
 
-    // Calculate regeneration per second
-    const attackerRegenPerSec = attacker.lizard.regeneration / 60;
-    const defenderRegenPerSec = defender.lizard.regeneration / 60;
+    // Calculate regeneration per second (3x speed)
+    const attackerRegenPerSec = (attacker.lizard.regeneration / 60) * 3;
+    const defenderRegenPerSec = (defender.lizard.regeneration / 60) * 3;
 
     let attackerNextAttack = Date.now() + attackerInterval;
     let defenderNextAttack = Date.now() + defenderInterval;
@@ -205,7 +231,10 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
             if (!d) return d;
             const newDefenderHp = Math.max(0, d.currentHp - damage);
             if (newDefenderHp === 0) {
-              setTimeout(() => setWinner(prev.lizard.name), 2000);
+              setTimeout(() => {
+                setWinner(prev.lizard.name);
+                setWinnerId(prev.lizard.id);
+              }, 2000);
             }
             return { ...d, currentHp: newDefenderHp };
           });
@@ -242,7 +271,10 @@ export function LizardFightWindow({ window }: LizardFightWindowProps) {
             if (!a) return a;
             const newAttackerHp = Math.max(0, a.currentHp - damage);
             if (newAttackerHp === 0) {
-              setTimeout(() => setWinner(prev.lizard.name), 2000);
+              setTimeout(() => {
+                setWinner(prev.lizard.name);
+                setWinnerId(prev.lizard.id);
+              }, 2000);
             }
             return { ...a, currentHp: newAttackerHp };
           });

@@ -4,7 +4,6 @@ import {
   EQUIPMENT_TYPE_ICONS,
   RARITY_COLORS,
   RARITY_BORDER_COLORS,
-  RARITY_NAMES,
   STAT_TYPE_NAMES,
   STAT_TYPE_ICONS,
 } from '../../types';
@@ -49,56 +48,54 @@ export function EquipmentCard({
 
   return (
     <div
-      className={`relative bg-white rounded-lg border-4 ${RARITY_BORDER_COLORS[item.rarity]} shadow-lg overflow-hidden hover:shadow-xl transition-shadow`}
+      className={`relative bg-gradient-to-b from-gray-900 to-black rounded border-2 ${RARITY_BORDER_COLORS[item.rarity]} shadow-lg overflow-hidden hover:shadow-xl transition-all hover:scale-105`}
     >
-      {/* Rarity Banner */}
-      <div className={`${RARITY_COLORS[item.rarity]} px-3 py-1 text-center font-bold text-sm`}>
-        {RARITY_NAMES[item.rarity]}
-      </div>
+      {/* Rarity glow effect */}
+      <div className={`absolute inset-0 ${RARITY_COLORS[item.rarity]} opacity-10 pointer-events-none`} />
 
       {/* Content */}
-      <div className="p-3">
-        {/* Icon and Type */}
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-3xl">{EQUIPMENT_TYPE_ICONS[item.equipment_type]}</span>
-          <div className="flex-1">
-            <div className="font-bold text-gray-900">
+      <div className="p-2 relative z-10">
+        {/* Header: Icon + Type + Level */}
+        <div className="flex items-center gap-1 mb-1">
+          <span className="text-2xl drop-shadow-lg">{EQUIPMENT_TYPE_ICONS[item.equipment_type]}</span>
+          <div className="flex-1 min-w-0">
+            <div className={`font-bold text-xs ${RARITY_COLORS[item.rarity]} truncate`}>
               {EQUIPMENT_TYPE_NAMES[item.equipment_type]}
             </div>
-            <div className="text-xs text-gray-600">Level {item.level}</div>
+            <div className="text-[10px] text-gray-400">Lvl {item.level}</div>
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="bg-gray-50 rounded p-2 mb-2 space-y-1">
+        {/* Stats - Compact */}
+        <div className="space-y-0.5 mb-1.5">
           {item.stats.map((stat, index) => (
-            <div key={index} className="flex items-center justify-between">
-              <div className="flex items-center gap-1 text-xs font-semibold text-gray-700">
-                <span>{STAT_TYPE_ICONS[stat.type]}</span>
-                <span>{STAT_TYPE_NAMES[stat.type]}</span>
-              </div>
-              <div className="text-sm font-bold text-green-600">
+            <div key={index} className="flex items-center justify-between text-[10px]">
+              <span className="text-gray-400 flex items-center gap-0.5">
+                <span className="text-xs">{STAT_TYPE_ICONS[stat.type]}</span>
+                {STAT_TYPE_NAMES[stat.type]}
+              </span>
+              <span className="font-bold text-green-400">
                 {formatStatValue(stat.type, stat.value)}
-              </div>
+              </span>
             </div>
           ))}
         </div>
 
         {/* Price */}
         {showPrice && (
-          <div className="flex items-center justify-center gap-1 mb-2 text-sm font-bold text-yellow-700">
+          <div className="flex items-center justify-center gap-0.5 mb-1.5 text-[10px] font-bold text-yellow-400">
             <span>💰</span>
             <span>{price.toLocaleString()}</span>
           </div>
         )}
 
         {/* Actions */}
-        <div className="flex gap-2">
+        <div className="flex gap-1">
           {onAction && (
             <button
               onClick={onAction}
               disabled={actionDisabled}
-              className={`flex-1 ${actionColor} text-white font-bold py-2 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm`}
+              className={`flex-1 ${actionColor} text-white font-bold py-1 px-2 rounded text-[10px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {actionLabel}
             </button>
@@ -106,7 +103,7 @@ export function EquipmentCard({
           {secondaryAction && (
             <button
               onClick={secondaryAction}
-              className={`flex-1 ${secondaryColor} text-white font-bold py-2 rounded transition-colors text-sm`}
+              className={`flex-1 ${secondaryColor} text-white font-bold py-1 px-2 rounded text-[10px] transition-colors`}
             >
               {secondaryLabel}
             </button>

@@ -108,7 +108,7 @@ export function EquipmentTab({ userId }: EquipmentTabProps) {
           <span>👕</span>
           <span>Equipped Items</span>
         </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
           {EQUIPMENT_SLOTS.map((type) => {
             const item = getEquippedItem(type);
 
@@ -128,13 +128,13 @@ export function EquipmentTab({ userId }: EquipmentTabProps) {
             return (
               <div
                 key={type}
-                className="bg-gray-100 border-4 border-dashed border-gray-300 rounded-lg p-3 flex flex-col items-center justify-center min-h-[180px]"
+                className="bg-gradient-to-b from-gray-800 to-gray-900 border-2 border-dashed border-gray-600 rounded p-2 flex flex-col items-center justify-center min-h-[120px]"
               >
-                <span className="text-3xl mb-1">{EQUIPMENT_TYPE_ICONS[type]}</span>
-                <span className="text-xs text-gray-500 text-center">
+                <span className="text-2xl mb-0.5 opacity-30">{EQUIPMENT_TYPE_ICONS[type]}</span>
+                <span className="text-[10px] text-gray-500 text-center">
                   {EQUIPMENT_TYPE_NAMES[type]}
                 </span>
-                <span className="text-xs text-gray-400 mt-1">Empty</span>
+                <span className="text-[9px] text-gray-600 mt-0.5">Empty</span>
               </div>
             );
           })}
@@ -155,7 +155,7 @@ export function EquipmentTab({ userId }: EquipmentTabProps) {
             <div className="text-sm">Visit the shop to buy equipment!</div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
             {inventoryItems.map((item) => (
               <EquipmentCard
                 key={item.id}
